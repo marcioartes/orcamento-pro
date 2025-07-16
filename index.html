@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Orçamento PRO</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="app-container">
+  <!-- Header -->
+  <div class="header">
+    <h1 id="header-title">Orçamento PRO</h1>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+
+    <!-- Dashboard Screen -->
+    <div class="screen active" id="dashboard-screen">
+      <div class="dashboard-stats">
+        <div class="stat-card">
+          <h3>Orçamentos</h3>
+          <p id="total-budgets">0</p>
+        </div>
+        <div class="stat-card">
+          <h3>Clientes</h3>
+          <p id="total-clients">0</p>
+        </div>
+      </div>
+      <div class="card">
+        <h2 class="mb-16">Ações Rápidas</h2>
+        <button class="btn btn-primary btn-block" onclick="showScreen('budgets-screen')">
+          Gerenciar Orçamentos
+        </button>
+        <button class="btn btn-secondary btn-block" onclick="showScreen('clients-screen')">
+          Gerenciar Clientes
+        </button>
+        <button class="btn btn-secondary btn-block" onclick="showScreen('profile-screen')">
+          Meu Perfil
+        </button>
+      </div>
+      <div class="card">
+        <h2 class="mb-16">Orçamentos Recentes</h2>
+        <div id="recent-budgets"></div>
+      </div>
+    </div>
+
+    <!-- Budgets Screen -->
+    <div class="screen" id="budgets-screen">
+      <div class="mb-16">
+        <button class="btn btn-primary" onclick="openBudgetModal()">Novo Orçamento</button>
+      </div>
+      <div class="card">
+        <h2 class="mb-16">Orçamentos</h2>
+        <div id="budgets-list"></div>
+      </div>
+    </div>
+
+    <!-- Clients Screen -->
+    <div class="screen" id="clients-screen">
+      <div class="mb-16">
+        <button class="btn btn-primary" onclick="openClientModal()">Novo Cliente</button>
+      </div>
+      <div class="card">
+        <h2 class="mb-16">Clientes</h2>
+        <div id="clients-list"></div>
+      </div>
+    </div>
+
+    <!-- Profile Screen -->
+    <div class="screen" id="profile-screen">
+      <div class="card">
+        <h2 class="mb-16">Meu Perfil</h2>
+        <form id="profile-form">
+          <div class="form-group">
+            <label for="company-name">Nome da Empresa</label>
+            <input type="text" id="company-name" required />
+          </div>
+          <div class="form-group">
+            <label for="company-cnpj">CNPJ</label>
+            <input type="text" id="company-cnpj" required />
+          </div>
+          <div class="form-group">
+            <label for="company-address">Endereço</label>
+            <input type="text" id="company-address" />
+          </div>
+          <div class="form-group">
+            <label for="company-phone">Telefone</label>
+            <input type="tel" id="company-phone" />
+          </div>
+          <div class="form-group">
+            <label for="company-email">Email</label>
+            <input type="email" id="company-email" />
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Salvar Perfil</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <div class="bottom-nav">
+    <div class="nav-item active" onclick="showScreen('dashboard-screen')">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2V7zm0 0a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
+      </svg>
+      <span>Início</span>
+    </div>
+    <div class="nav-item" onclick="showScreen('budgets-screen')">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+      <span>Orçamentos</span>
+    </div>
+    <div class="nav-item" onclick="showScreen('clients-screen')">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+      </svg>
+      <span>Clientes</span>
+    </div>
+    <div class="nav-item" onclick="showScreen('profile-screen')">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+      </svg>
+      <span>Perfil</span>
+    </div>
+  </div>
+</div>
+
+<!-- Client Modal -->
+<div class="modal" id="client-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title">Novo Cliente</h3>
+      <button class="close-btn" onclick="closeModal('client-modal')">&times;</button>
+    </div>
+    <form id="client-form">
+      <div class="form-group">
+        <label for="client-name">Nome</label>
+        <input type="text" id="client-name" required />
+      </div>
+      <div class="form-group">
+        <label for="client-email">Email</label>
+        <input type="email" id="client-email" />
+      </div>
+      <div class="form-group">
+        <label for="client-phone">Telefone</label>
+        <input type="tel" id="client-phone" />
+      </div>
+      <div class="form-group">
+        <label for="client-address">Endereço</label>
+        <input type="text" id="client-address" />
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Salvar Cliente</button>
+    </form>
+  </div>
+</div>
+
+<!-- Budget Modal -->
+<div class="modal" id="budget-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title">Novo Orçamento</h3>
+      <button class="close-btn" onclick="closeModal('budget-modal')">&times;</button>
+    </div>
+    <form id="budget-form">
+      <div class="form-group">
+        <label for="budget-client">Cliente</label>
+        <select id="budget-client" required></select>
+      </div>
+      <div class="form-group">
+        <label for="budget-delivery">Prazo de Entrega</label>
+        <input type="text" id="budget-delivery" placeholder="Ex: 15 dias úteis" />
+      </div>
+      <div class="form-group">
+        <label for="budget-payment">Forma de Pagamento</label>
+        <input type="text" id="budget-payment" placeholder="Ex: 50% entrada, 50% na entrega" />
+      </div>
+      <div class="form-group">
+        <label for="budget-notes">Observações</label>
+        <textarea id="budget-notes" placeholder="Informações adicionais"></textarea>
+      </div>
+      <h4 class="mb-16">Itens do Orçamento</h4>
+      <div id="budget-items"></div>
+      <button type="button" class="btn btn-secondary btn-block" onclick="addBudgetItem()">
+        Adicionar Item
+      </button>
+      <div class="form-group">
+        <label>Total Geral</label>
+        <input type="text" id="budget-total" readonly />
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Salvar Orçamento</button>
+    </form>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
