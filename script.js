@@ -63,7 +63,7 @@ function showScreen(screenId) {
     document.querySelectorAll(".nav-item").forEach((i) => i.classList.remove("active"));
 
     const titles = {
-        "dashboard-screen": "APP PRO - Gestão de Orçamentosgit ",
+        "dashboard-screen": "APP PRO - Gestão de Orçamentos ",
         "budgets-screen": "Orçamentos",
         "clients-screen": "Clientes",
         "profile-screen": "Meu Perfil",
