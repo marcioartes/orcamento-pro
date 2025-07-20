@@ -11,6 +11,9 @@
   <!-- Header -->
   <div class="header">
     <h1 id="header-title">Orçamento PRO</h1>
+    <button class="btn btn-secondary" onclick="logout()">
+      Sair
+    </button>
   </div>
 
   <!-- Main Content -->
@@ -97,8 +100,14 @@
         </form>
       </div>
     </div>
+
+    <!-- Login Screen -->
+    <div class="screen" id="login-screen">
+      <button class="btn btn-primary" onclick="login()">Login com Google</button>
+    </div>
   </div>
 
+  </div>
   <!-- Bottom Navigation -->
   <div class="bottom-nav">
     <div class="nav-item active" onclick="showScreen('dashboard-screen')">

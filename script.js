@@ -33,8 +33,29 @@ class DataManager {
     }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+// Auth
+function verifyUserSession() {
+    const session = DataManager.get("session");
+    console.log(session)
+    if(!session) {
+        showScreen("login-screen");
+    } else {
+        showScreen("dashboard-screen");
+    }
+}
+
+function login() {
+    DataManager.set("session", {userId: 1, name: "John Doe"});
     showScreen("dashboard-screen");
+}
+
+function logout() {
+    DataManager.remove("session");
+    showScreen("login-screen");
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    verifyUserSession();
     loadProfile();
     loadClients();
     loadBudgets();
@@ -67,11 +88,13 @@ function showScreen(screenId) {
         "budgets-screen": "Orçamentos",
         "clients-screen": "Clientes",
         "profile-screen": "Meu Perfil",
+        "login-screen": "Login",
     };
     document.getElementById("header-title").textContent = titles[screenId];
+    console.log({screenId, titulo: document.getElementById("header-title").textContent});
 
     const navItems = document.querySelectorAll(".nav-item");
-    const order = ["dashboard-screen", "budgets-screen", "clients-screen", "profile-screen"];
+    const order = ["dashboard-screen", "budgets-screen", "clients-screen", "profile-screen", "login-screen"];
     const index = order.indexOf(screenId);
     if (index !== -1 && navItems[index]) {
         navItems[index].classList.add("active");
