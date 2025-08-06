@@ -598,7 +598,8 @@ function exportBudgetPDF(id) {
                     TOTAL GERAL: R$ ${total.toFixed(2).replace(".", ",")}
                 </div>
                 <div style="margin-top: 40px; text-align: center; color: #666;">
-                    <p>Gerado em: ${new Date().toLocaleString("pt-BR")}</p>
+                <p>Orçamento gerado em: ${new Date().toLocaleString("pt-BR")}</p>
+                <p>Octopus Software & Design. 41.98793-7009</p>
                 </div>
             </div>
         </body>
@@ -640,3 +641,4 @@ window.closeModal = closeModal;
 window.addBudgetItem = addBudgetItem;
 window.deleteClient = deleteClient;
 window.deleteBudget = deleteBudget;
+window.exportBudgetPDF = exportBudgetPDF;
