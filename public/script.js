@@ -107,6 +107,28 @@ document.addEventListener("DOMContentLoaded", () => {
             calculateItemTotal(e.target);
         }
     });
+
+    const logoInput = document.getElementById('company-logo');
+    const logoPreview = document.getElementById('logo-preview');
+
+    // Escuta por mudanças no input de arquivo
+    logoInput.addEventListener('change', () => {
+        const file = logoInput.files[0]; // Pega o primeiro arquivo selecionado
+
+        if (file) {
+            // Cria um "leitor de arquivos" do próprio navegador
+            const reader = new FileReader();
+
+            // Define o que fazer QUANDO o leitor terminar de ler o arquivo
+            reader.onload = (e) => {
+                // Atualiza a fonte (src) da nossa imagem de prévia
+                logoPreview.src = e.target.result;
+            };
+
+            // Pede para o leitor começar a ler o arquivo
+            reader.readAsDataURL(file);
+        }
+    });
 });
 
 function showScreen(screenId) {
@@ -193,6 +215,8 @@ function loadProfile() {
     document.getElementById("company-address").value = profile.address || "";
     document.getElementById("company-phone").value = profile.phone || "";
     document.getElementById("company-email").value = profile.email || "";
+    document.getElementById("logo-preview").src = profile.logo || "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9IiNmMmYyZjIiLz4KPC9zdmc+Cg==";
+
 }
 
 function saveProfile(e) {
@@ -203,6 +227,7 @@ function saveProfile(e) {
         address: document.getElementById("company-address").value.trim(),
         phone: document.getElementById("company-phone").value.trim(),
         email: document.getElementById("company-email").value.trim(),
+        logo: document.getElementById("logo-preview").src,
     };
     DataManager.set("profile", profile);
     alert("Perfil salvo com sucesso!");
@@ -549,9 +574,14 @@ function collectBudgetItems() {
     return items;
 }
 
+/**
+ * Gera e abre uma janela de impressão com o orçamento em formato de PDF.
+ */
 function exportBudgetPDF(id) {
+    // Busca os dados necessários.
     const budgets = DataManager.get("budgets") || [];
     const budget = budgets.find(b => b.id === id);
+
     if (!budget) {
         alert("Orçamento não encontrado!");
         return;
@@ -562,52 +592,94 @@ function exportBudgetPDF(id) {
     const client = clients.find(c => c.id === budget.clientId);
     const total = budget.items.reduce((sum, i) => sum + i.quantity * i.price, 0);
 
+    // Lógica para incluir o logo no cabeçalho
+    let logoHtml = ''; // Variável para o HTML do logo.
+    if (profile.logo) { // Verifica se existe um logo salvo.
+        // Se existir, monta a tag <img> com o logo e estilos.
+        logoHtml = `<img src="${profile.logo}" alt="Logotipo da Empresa" style="max-height: 80px; max-width: 180px; margin-bottom: 15px; object-fit: contain;" />`;
+    }
+
+    // Abre uma nova janela para o PDF.
     const printWindow = window.open("", "_blank");
-    printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Orçamento #${budget.id.slice(-6)}</title>
-            <style>
-                body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
-                @media print { body { margin: 0; } }
-            </style>
-        </head>
-        <body>
-            <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
-                <div style="text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px;">
-                    <h1>${profile.name || "Empresa"}</h1>
+
+
+    // Escreve o HTML do orçamento na nova janela.
+     printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Orçamento #${budget.id.slice(-6)}</title>
+        <style>
+            body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
+            p { margin: 5px 0; font-size: 12px; } /* Ajuste geral para parágrafos */
+            @media print { body { margin: 0; } }
+        </style>
+    </head>
+    <body>
+        <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
+
+            <div style="display: flex; align-items: center; border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 20px;">
+                <div style="flex: 0 0 30%; text-align: left;">
+                    ${logoHtml}
+                </div>
+                <div style="flex: 0 0 70%; padding-left: 20px; text-align: left;">
+                    <h3 style="margin: 0; font-size: 18px;">${profile.name || "Empresa"}</h3>
                     <p>CNPJ: ${profile.cnpj || "Não informado"}</p>
                     <p>Endereço: ${profile.address || "Não informado"}</p>
                     <p>Email: ${profile.email || "Não informado"}</p>
-                </div>
-                <h2 style="margin-top: 30px;">ORÇAMENTO #${budget.id.slice(-6)}</h2>
-                <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-                    <thead><tr style="background: #f5f5f5;"><th style="border: 1px solid #ddd; padding: 10px; text-align: left;">Descrição</th><th style="border: 1px solid #ddd; padding: 10px; text-align: center;">Qtd</th><th style="border: 1px solid #ddd; padding: 10px; text-align: right;">Preço</th><th style="border: 1px solid #ddd; padding: 10px; text-align: right;">Total</th></tr></thead>
-                    <tbody>
-                        ${budget.items.map(i => `
-                            <tr>
-                                <td style="border: 1px solid #ddd; padding: 10px;">${i.description}</td>
-                                <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">${i.quantity}</td>
-                                <td style="border: 1px solid #ddd; padding: 10px; text-align: right;">R$ ${i.price.toFixed(2).replace(".", ",")}</td>
-                                <td style="border: 1px solid #ddd; padding: 10px; text-align: right;">R$ ${(i.quantity * i.price).toFixed(2).replace(".", ",")}</td>
-                            </tr>`).join("")}
-                    </tbody>
-                </table>
-                <div style="text-align: right; font-size: 18px; font-weight: bold;">
-                    TOTAL GERAL: R$ ${total.toFixed(2).replace(".", ",")}
-                </div>
-                <div style="margin-top: 40px; text-align: center; color: #666;">
-                <p>Orçamento gerado em: ${new Date().toLocaleString("pt-BR")}</p>
-                <p>Octopus Software & Design. 41.98793-7009</p>
+                    <p>Telefone: ${profile.phone || "Não informado"}</p>
                 </div>
             </div>
-        </body>
-        </html>`);
+
+            <h3 style="margin-top: 20px;">ORÇAMENTO #${budget.id.slice(-6)}</h3>
+
+            <div style="margin-bottom: 30px; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
+              <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 16px;">Dados do Cliente:</h3>
+              <p><strong>Cliente:</strong> ${client.name || "Não informado"}</p>
+              <p><strong>Telefone:</strong> ${client.phone || "Não informado"}</p>
+              <p><strong>Endereço:</strong> ${client.address || "Não informado"}</p>
+              <p><strong>Email:</strong> ${client.email || "Não informado"}</p>
+            </div>
+
+            <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                <thead><tr style="background: #f5f5f5;"><th style="border: 1px solid #ddd; padding: 10px; text-align: left;">Descrição</th><th style="border: 1px solid #ddd; padding: 10px; text-align: center;">Qtd</th><th style="border: 1px solid #ddd; padding: 10px; text-align: right;">Preço</th><th style="border: 1px solid #ddd; padding: 10px; text-align: right;">Total</th></tr></thead>
+                <tbody>
+                    ${budget.items.map(i => `
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 10px;">${i.description}</td>
+                            <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">${i.quantity}</td>
+                            <td style="border: 1px solid #ddd; padding: 10px; text-align: right;">R$ ${i.price.toFixed(2).replace(".", ",")}</td>
+                            <td style="border: 1px solid #ddd; padding: 10px; text-align: right;">R$ ${(i.quantity * i.price).toFixed(2).replace(".", ",")}</td>
+                        </tr>`).join("")}
+                </tbody>
+            </table>
+
+            <div style="text-align: right; font-size: 18px; font-weight: bold; margin-top: 20px;">
+                TOTAL GERAL: R$ ${total.toFixed(2).replace(".", ",")}
+            </div>
+
+            <div style="margin-top: 30px; padding-top: 20px; border:1px solid #ddd; border-radius: 5px;">
+                <p><strong>Prazo de Entrega:</strong> ${budget.delivery || "A combinar"}</p>
+            </div>
+
+            <div style="margin-top: 30px; padding-top: 20px; border:1px solid #ddd; border-radius: 5px;">
+                <p><strong>Forma de Pagamento:</strong> ${budget.payment || "A combinar"}</p>
+            </div>
+
+            <div style="margin-top: 30px; padding-top: 20px; border:1px solid #ddd; border-radius: 5px;">
+                ${budget.notes ? `<p style="margin-top: 10px;"><strong>Observações:</strong><br>${budget.notes.replace(/\n/g, '<br>')}</p>` : ''}
+            </div>
+            <div style="margin-top: 40px; text-align: center; color: #666; font-size: 12px;">
+                <p>Orçamento gerado em: ${new Date().toLocaleString("pt-BR")}</p>
+                <p>Octopus Software & Design. 41.98793-7009</p>
+            </div>
+        </div>
+    </body>
+    </html>`);
+
     printWindow.document.close();
     setTimeout(() => printWindow.print(), 250);
 }
-
 function updateDashboard() {
     const budgets = DataManager.get("budgets") || [];
     const clients = DataManager.get("clients") || [];

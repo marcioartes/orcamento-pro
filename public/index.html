@@ -72,35 +72,48 @@
     </div>
 
     <!-- Profile Screen -->
-    <div class="screen" id="profile-screen">
-      <div class="card">
-        <h2 class="mb-16">Meu Perfil</h2>
-        <form id="profile-form">
-          <div class="form-group">
-            <label for="company-name">Nome da Empresa</label>
-            <input type="text" id="company-name" required />
-          </div>
-          <div class="form-group">
-            <label for="company-cnpj">CNPJ</label>
-            <input type="text" id="company-cnpj" required />
-          </div>
-          <div class="form-group">
-            <label for="company-address">Endereço</label>
-            <input type="text" id="company-address" />
-          </div>
-          <div class="form-group">
-            <label for="company-phone">Telefone</label>
-            <input type="tel" id="company-phone" />
-          </div>
-          <div class="form-group">
-            <label for="company-email">Email</label>
-            <input type="email" id="company-email" />
-          </div>
-          <button type="submit" class="btn btn-primary btn-block">Salvar Perfil</button>
-        </form>
-      </div>
-    </div>
+  <div class="screen" id="profile-screen">
+  <div class="card">
+    <h2 class="mb-16">Meu Perfil</h2>
 
+    <form id="profile-form">
+
+      <div class="logo-uploader">
+        <img id="logo-preview"
+        src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9IiNmMmYyZjIiLz4KPC9zdmc+Cg=="
+        alt="Prévia do Logo" />
+
+        <label for="company-logo" class="btn btn-secondary">Alterar Logo</label>
+
+        <input type="file" id="company-logo" accept="image/*" style="display: none;" />
+      </div>
+
+      <div class="form-group">
+        <label for="company-name">Nome da Empresa</label>
+        <input type="text" id="company-name" required />
+      </div>
+      <div class="form-group">
+        <label for="company-cnpj">CNPJ</label>
+        <input type="text" id="company-cnpj" required />
+      </div>
+      <div class="form-group">
+        <label for="company-address">Endereço</label>
+        <input type="text" id="company-address" />
+      </div>
+      <div class="form-group">
+        <label for="company-phone">Telefone</label>
+        <input type="tel" id="company-phone" />
+      </div>
+      <div class="form-group">
+        <label for="company-email">Email</label>
+        <input type="email" id="company-email" />
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block">Salvar Perfil</button>
+
+    </form>
+  </div>
+</div>
     <!-- Login Screen -->
     <div class="screen" id="login-screen">
       <button class="btn btn-primary" onclick="login()">Login com Google</button>
