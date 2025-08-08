@@ -1,7 +1,105 @@
-import { auth, provider, signInWithPopup, signOut } from "./auth.js";
+// ===================================================================
+//  IMPORTAÇÕES E CONFIGURAÇÃO INICIAL
+// ===================================================================
+import { auth, provider, signInWithPopup, signOut, onAuthStateChanged } from "./auth.js";
 
 let currentBudgetId = null;
 let currentClientId = null;
+
+// --- Referências aos Contêineres Principais do HTML ---
+const loginContainer = document.getElementById('login-container');
+const appContainer = document.getElementById('main-app');
+
+
+// ===================================================================
+//  O NOVO "CORAÇÃO" DO APLICATIVO - O VIGIA DE AUTENTICAÇÃO
+// ===================================================================
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    // SE O USUÁRIO ESTIVER LOGADO
+    console.log("Usuário autenticado:", user.email);
+    appContainer.style.display = 'block';
+    loginContainer.style.display = 'none';
+
+    carregarDadosIniciais(user.uid);
+    adicionarEventListenersApp();
+
+  } else {
+    // SE O USUÁRIO NÃO ESTIVER LOGADO
+    console.log("Nenhum usuário autenticado.");
+    appContainer.style.display = 'none';
+    loginContainer.style.display = 'block';
+  }
+});
+
+
+// ===================================================================
+//  FUNÇÕES DE INICIALIZAÇÃO E EVENTOS
+// ===================================================================
+
+function carregarDadosIniciais(userId) {
+  console.log("Carregando dados para o usuário:", userId);
+  loadProfile();
+  loadClients();
+  loadBudgets();
+  updateDashboard();
+  showScreen('dashboard-screen');
+}
+
+function adicionarEventListenersApp() {
+    document.getElementById("profile-form").addEventListener("submit", saveProfile);
+    document.getElementById("client-form").addEventListener("submit", saveClient);
+    document.getElementById("budget-form").addEventListener("submit", saveBudget);
+    document.getElementById("company-cnpj").addEventListener("input", formatCNPJ);
+
+    const logoInput = document.getElementById('company-logo');
+    const logoPreview = document.getElementById('logo-preview');
+    logoInput.addEventListener('change', () => {
+        const file = logoInput.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                logoPreview.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    document.addEventListener("input", (e) => {
+      if (
+          e.target.classList.contains("item-quantity") ||
+          e.target.classList.contains("item-price")
+      ) {
+          calculateItemTotal(e.target);
+      }
+    });
+
+    document.addEventListener("click", (e) => {
+        if (e.target.classList.contains("modal")) {
+            e.target.classList.remove("active");
+            currentClientId = null;
+            currentBudgetId = null;
+        }
+    });
+}
+
+
+// ===================================================================
+//  FUNÇÕES DE AUTENTICAÇÃO
+// ===================================================================
+
+function login() {
+  signInWithPopup(auth, provider).catch((error) => console.error("Erro no login:", error));
+}
+
+function logout() {
+  signOut(auth).catch((error) => console.error("Erro ao deslogar:", error));
+}
+
+
+// ===================================================================
+//  A PARTIR DAQUI, SEU CÓDIGO ORIGINAL (LÓGICA DO APP)
+// ===================================================================
 
 class DataManager {
     static get(key) {
@@ -13,7 +111,6 @@ class DataManager {
             return null;
         }
     }
-
     static set(key, value) {
         try {
             localStorage.setItem(key, JSON.stringify(value));
@@ -23,7 +120,6 @@ class DataManager {
             return false;
         }
     }
-
     static remove(key) {
         try {
             localStorage.removeItem(key);
@@ -35,105 +131,12 @@ class DataManager {
     }
 }
 
-// Auth
-function login() {
-    const user = signInWithPopup(auth, provider)
-        .then((result) => {
-            const user = result.user;
-            DataManager.set("session", user);
-            showScreen("dashboard-screen");
-            loadProfile();
-            loadClients();
-            loadBudgets();
-            updateDashboard();
-            document.getElementById("profile-form").addEventListener("submit", saveProfile);
-            document.getElementById("client-form").addEventListener("submit", saveClient);
-            document.getElementById("budget-form").addEventListener("submit", saveBudget);
-
-            document.getElementById("company-cnpj").addEventListener("input", formatCNPJ);
-
-            document.addEventListener("input", (e) => {
-                if (
-                    e.target.classList.contains("item-quantity") ||
-                    e.target.classList.contains("item-price")
-                ) {
-                    calculateItemTotal(e.target);
-                }
-            });
-        })
-        .catch((error) => {
-            console.error("Erro no login:", error);
-        });
-}
-
-function logout() {
-    signOut(auth)
-        .then(() => {
-            DataManager.remove("session");
-            showScreen("login-screen");
-        })
-        .catch((error) => {
-            console.error("Erro ao deslogar:", error);
-        });
-}
-
-function verifyUserSession() {
-    const session = DataManager.get("session");
-    if(!session) {
-        showScreen("login-screen");
-    } else {
-        showScreen("dashboard-screen");
-    }
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-    verifyUserSession();
-    loadProfile();
-    loadClients();
-    loadBudgets();
-    updateDashboard();
-
-    document.getElementById("profile-form").addEventListener("submit", saveProfile);
-    document.getElementById("client-form").addEventListener("submit", saveClient);
-    document.getElementById("budget-form").addEventListener("submit", saveBudget);
-
-    document.getElementById("company-cnpj").addEventListener("input", formatCNPJ);
-
-    document.addEventListener("input", (e) => {
-        if (
-            e.target.classList.contains("item-quantity") ||
-            e.target.classList.contains("item-price")
-        ) {
-            calculateItemTotal(e.target);
-        }
-    });
-
-    const logoInput = document.getElementById('company-logo');
-    const logoPreview = document.getElementById('logo-preview');
-
-    // Escuta por mudanças no input de arquivo
-    logoInput.addEventListener('change', () => {
-        const file = logoInput.files[0]; // Pega o primeiro arquivo selecionado
-
-        if (file) {
-            // Cria um "leitor de arquivos" do próprio navegador
-            const reader = new FileReader();
-
-            // Define o que fazer QUANDO o leitor terminar de ler o arquivo
-            reader.onload = (e) => {
-                // Atualiza a fonte (src) da nossa imagem de prévia
-                logoPreview.src = e.target.result;
-            };
-
-            // Pede para o leitor começar a ler o arquivo
-            reader.readAsDataURL(file);
-        }
-    });
-});
-
 function showScreen(screenId) {
     document.querySelectorAll(".screen").forEach((s) => s.classList.remove("active"));
-    document.getElementById(screenId).classList.add("active");
+    const screenElement = document.getElementById(screenId);
+    if (screenElement) {
+        screenElement.classList.add("active");
+    }
 
     document.querySelectorAll(".nav-item").forEach((i) => i.classList.remove("active"));
 
@@ -142,13 +145,11 @@ function showScreen(screenId) {
         "budgets-screen": "Orçamentos",
         "clients-screen": "Clientes",
         "profile-screen": "Meu Perfil",
-        "login-screen": "Login",
     };
-    document.getElementById("header-title").textContent = titles[screenId];
-    console.log({screenId, titulo: document.getElementById("header-title").textContent});
+    document.getElementById("header-title").textContent = titles[screenId] || "Orçamento PRO";
 
     const navItems = document.querySelectorAll(".nav-item");
-    const order = ["dashboard-screen", "budgets-screen", "clients-screen", "profile-screen", "login-screen"];
+    const order = ["dashboard-screen", "budgets-screen", "clients-screen", "profile-screen"];
     const index = order.indexOf(screenId);
     if (index !== -1 && navItems[index]) {
         navItems[index].classList.add("active");
@@ -207,7 +208,6 @@ function closeModal(modalId) {
     currentBudgetId = null;
 }
 
-// PROFILE
 function loadProfile() {
     const profile = DataManager.get("profile") || {};
     document.getElementById("company-name").value = profile.name || "";
@@ -216,7 +216,6 @@ function loadProfile() {
     document.getElementById("company-phone").value = profile.phone || "";
     document.getElementById("company-email").value = profile.email || "";
     document.getElementById("logo-preview").src = profile.logo || "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9IiNmMmYyZjIiLz4KPC9zdmc+Cg==";
-
 }
 
 function saveProfile(e) {
@@ -233,21 +232,24 @@ function saveProfile(e) {
     alert("Perfil salvo com sucesso!");
 }
 
-// CLIENTES
+// DENTRO DE SCRIPT.JS - SUBSTITUA TODA A SUA FUNÇÃO loadClients
+
 function loadClients() {
     const clients = DataManager.get("clients") || [];
     const list = document.getElementById("clients-list");
+
     if (clients.length === 0) {
         list.innerHTML = `
             <div class="empty-state">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
                 <p>Nenhum cliente encontrado</p>
             </div>`;
         return;
     }
+
     list.innerHTML = clients.map((client) => `
         <div class="list-item">
             <div class="list-item-info">
@@ -259,13 +261,13 @@ function loadClients() {
                 <button class="btn-icon btn-secondary" onclick="openClientModal('${client.id}')">
                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 012.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 012.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
                 </button>
                 <button class="btn-icon btn-danger" onclick="deleteClient('${client.id}')">
                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
                 </button>
             </div>
@@ -276,34 +278,27 @@ function saveClient(e) {
     e.preventDefault();
     const clients = DataManager.get("clients") || [];
     const name = document.getElementById("client-name").value.trim();
-    const email = document.getElementById("client-email").value.trim();
-    const phone = document.getElementById("client-phone").value.trim();
-    const address = document.getElementById("client-address").value.trim();
-
     if (!name) {
         alert("O nome é obrigatório.");
         return;
     }
-
     const clientData = {
         id: currentClientId || Date.now().toString(),
         name,
-        email,
-        phone,
-        address,
+        email: document.getElementById("client-email").value.trim(),
+        phone: document.getElementById("client-phone").value.trim(),
+        address: document.getElementById("client-address").value.trim(),
         createdAt: currentClientId ? clients.find(c => c.id === currentClientId)?.createdAt : new Date().toISOString()
     };
-
     if (currentClientId) {
         const index = clients.findIndex((c) => c.id === currentClientId);
         if (index > -1) clients[index] = clientData;
     } else {
         clients.push(clientData);
     }
-
     DataManager.set("clients", clients);
     loadClients();
-    loadClientOptions();
+    //loadClientOptions();
     updateDashboard();
     closeModal("client-modal");
     alert(currentClientId ? "Cliente atualizado!" : "Cliente salvo!");
@@ -331,7 +326,8 @@ function loadClientOptions() {
     });
 }
 
-// ORÇAMENTOS
+// DENTRO DE SCRIPT.JS - SUBSTITUA TODA A SUA FUNÇÃO loadBudgets POR ESTA
+
 function loadBudgets() {
     const budgets = DataManager.get("budgets") || [];
     const clients = DataManager.get("clients") || [];
@@ -343,7 +339,7 @@ function loadBudgets() {
             <div class="empty-state">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
                 <p>Nenhum orçamento encontrado</p>
             </div>`;
@@ -356,7 +352,7 @@ function loadBudgets() {
 
     const itemsHTML = sorted.map(b => {
         const client = clients.find(c => c.id === b.clientId);
-        const total = b.items.reduce((sum, i) => sum + i.quantity * i.price, 0);
+        const total = b.items.reduce((sum, i) => sum + (i.quantity * i.price), 0);
         return `
             <div class="list-item">
                 <div class="list-item-info">
@@ -369,19 +365,19 @@ function loadBudgets() {
                     <button class="btn-icon btn-secondary" onclick="openBudgetModal('${b.id}')">
                         <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 012.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 012.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
                     </button>
                     <button class="btn-icon btn-success" onclick="exportBudgetPDF('${b.id}')">
                         <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                     </button>
                     <button class="btn-icon btn-danger" onclick="deleteBudget('${b.id}')">
                         <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                     </button>
                 </div>
@@ -393,7 +389,7 @@ function loadBudgets() {
     // Recent budgets
     const recentHTML = sorted.slice(0, 3).map(b => {
         const client = clients.find(c => c.id === b.clientId);
-        const total = b.items.reduce((sum, i) => sum + i.quantity * i.price, 0);
+        const total = b.items.reduce((sum, i) => sum + (i.quantity * i.price), 0);
         return `
             <div class="list-item" onclick="openBudgetModal('${b.id}')">
                 <div class="list-item-info">
@@ -408,7 +404,7 @@ function loadBudgets() {
         <div class="empty-state">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             <p>Nenhum orçamento criado ainda</p>
         </div>`;
@@ -422,7 +418,6 @@ function saveBudget(e) {
         alert("Adicione pelo menos um item ao orçamento!");
         return;
     }
-
     const data = {
         id: currentBudgetId || Date.now().toString(),
         clientId: document.getElementById("budget-client").value,
@@ -432,14 +427,12 @@ function saveBudget(e) {
         items,
         createdAt: currentBudgetId ? budgets.find(b => b.id === currentBudgetId)?.createdAt : new Date().toISOString()
     };
-
     if (currentBudgetId) {
         const index = budgets.findIndex(b => b.id === currentBudgetId);
         if (index > -1) budgets[index] = data;
     } else {
         budgets.push(data);
     }
-
     DataManager.set("budgets", budgets);
     loadBudgets();
     updateDashboard();
@@ -456,8 +449,12 @@ function deleteBudget(id) {
     }
 }
 
+// DENTRO DE SCRIPT.JS
+
 function resetBudgetItems() {
     const container = document.getElementById("budget-items");
+
+    // SUBSTITUA SEU innerHTML SIMPLIFICADO POR ESTE BLOCO COMPLETO:
     container.innerHTML = `
         <div class="budget-item-form">
             <div class="form-group">
@@ -477,15 +474,21 @@ function resetBudgetItems() {
                 <input type="text" class="item-total" readonly>
             </div>
         </div>`;
-    calculateBudgetTotal();
+
+    calculateBudgetTotal(); // Agora esta função vai encontrar os campos acima.
 }
+
+// DENTRO DE SCRIPT.JS - SUBSTITUA TODA A SUA FUNÇÃO loadBudgetItems
 
 function loadBudgetItems(items) {
     const container = document.getElementById("budget-items");
-    container.innerHTML = "";
+    container.innerHTML = ""; // Limpa a lista antiga, caso exista
+
     items.forEach((item, index) => {
         const div = document.createElement("div");
         div.className = "budget-item-form";
+
+        // O HTML AQUI DENTRO PRECISA ESTAR COMPLETO, com todos os inputs
         div.innerHTML = `
             <div class="form-group">
                 <label>Descrição do Serviço</label>
@@ -503,34 +506,19 @@ function loadBudgetItems(items) {
                 <label>Total do Item</label>
                 <input type="text" class="item-total" value="R$ ${(item.quantity * item.price).toFixed(2).replace(".", ",")}" readonly>
             </div>
-            ${index > 0 ? `<button type="button" class="btn btn-danger" onclick="removeBudgetItem(this)">Remover Item</button>` : ""}`;
+            ${index > 0 ? `<button type="button" class="btn btn-danger" onclick="removeBudgetItem(this)">Remover Item</button>` : ""}
+        `;
         container.appendChild(div);
     });
-    calculateBudgetTotal();
+
+    calculateBudgetTotal(); // Esta chamada agora encontrará os inputs e funcionará
 }
 
 function addBudgetItem() {
     const container = document.getElementById("budget-items");
     const div = document.createElement("div");
     div.className = "budget-item-form";
-    div.innerHTML = `
-        <div class="form-group">
-            <label>Descrição do Serviço</label>
-            <input type="text" class="item-description" placeholder="Descrição do serviço">
-        </div>
-        <div class="form-group">
-            <label>Quantidade</label>
-            <input type="number" class="item-quantity" value="1" min="1">
-        </div>
-        <div class="form-group">
-            <label>Preço Unitário</label>
-            <input type="number" class="item-price" step="0.01" placeholder="0.00">
-        </div>
-        <div class="form-group">
-            <label>Total do Item</label>
-            <input type="text" class="item-total" readonly>
-        </div>
-        <button type="button" class="btn btn-danger" onclick="removeBudgetItem(this)">Remover Item</button>`;
+    div.innerHTML = `...`; // Simplificado
     container.appendChild(div);
     calculateBudgetTotal();
 }
@@ -590,33 +578,32 @@ function exportBudgetPDF(id) {
     const clients = DataManager.get("clients") || [];
     const profile = DataManager.get("profile") || {};
     const client = clients.find(c => c.id === budget.clientId);
-    const total = budget.items.reduce((sum, i) => sum + i.quantity * i.price, 0);
+    const total = budget.items.reduce((sum, i) => sum + (i.quantity * i.price), 0);
 
     // Lógica para incluir o logo no cabeçalho
-    let logoHtml = ''; // Variável para o HTML do logo.
-    if (profile.logo) { // Verifica se existe um logo salvo.
-        // Se existir, monta a tag <img> com o logo e estilos.
-        logoHtml = `<img src="${profile.logo}" alt="Logotipo da Empresa" style="max-height: 80px; max-width: 180px; margin-bottom: 15px; object-fit: contain;" />`;
+    let logoHtml = '';
+    if (profile.logo) {
+        logoHtml = `<img src="${profile.logo}" alt="Logotipo da Empresa" style="max-height: 80px; max-width: 180px; object-fit: contain;" />`;
     }
 
-    // Abre uma nova janela para o PDF.
     const printWindow = window.open("", "_blank");
 
-
-    // Escreve o HTML do orçamento na nova janela.
-     printWindow.document.write(`
+    // SUBSTITUA O SEU BLOCO "document.write" POR ESTE BLOCO COMPLETO E CORRIGIDO
+    printWindow.document.write(`
     <!DOCTYPE html>
-    <html>
+    <html lang="pt-BR">
     <head>
+        <meta charset="UTF-8">
         <title>Orçamento #${budget.id.slice(-6)}</title>
         <style>
-            body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
-            p { margin: 5px 0; font-size: 12px; } /* Ajuste geral para parágrafos */
+            body { margin: 0; padding: 20px; font-family: Arial, sans-serif; color: #333; }
+            p { margin: 5px 0; font-size: 12px; line-height: 1.4; }
+            strong { font-weight: bold; }
             @media print { body { margin: 0; } }
         </style>
     </head>
     <body>
-        <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
+        <div style="max-width: 800px; margin: 0 auto;">
 
             <div style="display: flex; align-items: center; border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 20px;">
                 <div style="flex: 0 0 30%; text-align: left;">
@@ -631,18 +618,25 @@ function exportBudgetPDF(id) {
                 </div>
             </div>
 
-            <h3 style="margin-top: 20px;">ORÇAMENTO #${budget.id.slice(-6)}</h3>
+            <h2 style="margin-top: 30px; font-size: 22px; text-align: center;">ORÇAMENTO #${budget.id.slice(-6)}</h2>
 
             <div style="margin-bottom: 30px; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
               <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 16px;">Dados do Cliente:</h3>
-              <p><strong>Cliente:</strong> ${client.name || "Não informado"}</p>
-              <p><strong>Telefone:</strong> ${client.phone || "Não informado"}</p>
-              <p><strong>Endereço:</strong> ${client.address || "Não informado"}</p>
-              <p><strong>Email:</strong> ${client.email || "Não informado"}</p>
+              <p><strong>Cliente:</strong> ${client?.name || "Não informado"}</p>
+              <p><strong>Telefone:</strong> ${client?.phone || "Não informado"}</p>
+              <p><strong>Endereço:</strong> ${client?.address || "Não informado"}</p>
+              <p><strong>Email:</strong> ${client?.email || "Não informado"}</p>
             </div>
 
-            <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
-                <thead><tr style="background: #f5f5f5;"><th style="border: 1px solid #ddd; padding: 10px; text-align: left;">Descrição</th><th style="border: 1px solid #ddd; padding: 10px; text-align: center;">Qtd</th><th style="border: 1px solid #ddd; padding: 10px; text-align: right;">Preço</th><th style="border: 1px solid #ddd; padding: 10px; text-align: right;">Total</th></tr></thead>
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #f5f5f5;">
+                        <th style="border: 1px solid #ddd; padding: 10px; text-align: left;">Descrição</th>
+                        <th style="border: 1px solid #ddd; padding: 10px; text-align: center;">Qtd</th>
+                        <th style="border: 1px solid #ddd; padding: 10px; text-align: right;">Preço Unit.</th>
+                        <th style="border: 1px solid #ddd; padding: 10px; text-align: right;">Total</th>
+                    </tr>
+                </thead>
                 <tbody>
                     ${budget.items.map(i => `
                         <tr>
@@ -658,17 +652,12 @@ function exportBudgetPDF(id) {
                 TOTAL GERAL: R$ ${total.toFixed(2).replace(".", ",")}
             </div>
 
-            <div style="margin-top: 30px; padding-top: 20px; border:1px solid #ddd; border-radius: 5px;">
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
                 <p><strong>Prazo de Entrega:</strong> ${budget.delivery || "A combinar"}</p>
-            </div>
-
-            <div style="margin-top: 30px; padding-top: 20px; border:1px solid #ddd; border-radius: 5px;">
                 <p><strong>Forma de Pagamento:</strong> ${budget.payment || "A combinar"}</p>
-            </div>
-
-            <div style="margin-top: 30px; padding-top: 20px; border:1px solid #ddd; border-radius: 5px;">
                 ${budget.notes ? `<p style="margin-top: 10px;"><strong>Observações:</strong><br>${budget.notes.replace(/\n/g, '<br>')}</p>` : ''}
             </div>
+
             <div style="margin-top: 40px; text-align: center; color: #666; font-size: 12px;">
                 <p>Orçamento gerado em: ${new Date().toLocaleString("pt-BR")}</p>
                 <p>Octopus Software & Design. 41.98793-7009</p>
@@ -677,9 +666,11 @@ function exportBudgetPDF(id) {
     </body>
     </html>`);
 
+    // **IMPORTANTE:** Reative estas duas linhas!
     printWindow.document.close();
-    setTimeout(() => printWindow.print(), 250);
+    setTimeout(() => printWindow.print(), 500); // Aumentei para 500ms por segurança
 }
+
 function updateDashboard() {
     const budgets = DataManager.get("budgets") || [];
     const clients = DataManager.get("clients") || [];
@@ -696,14 +687,9 @@ function formatCNPJ(e) {
     e.target.value = v;
 }
 
-document.addEventListener("click", (e) => {
-    if (e.target.classList.contains("modal")) {
-        e.target.classList.remove("active");
-        currentClientId = null;
-        currentBudgetId = null;
-    }
-});
-
+// ===================================================================
+//  DISPONIBILIZA FUNÇÕES PARA O HTML (onclick)
+// ===================================================================
 window.login = login;
 window.logout = logout;
 window.showScreen = showScreen;
@@ -711,6 +697,7 @@ window.openClientModal = openClientModal;
 window.openBudgetModal = openBudgetModal;
 window.closeModal = closeModal;
 window.addBudgetItem = addBudgetItem;
+window.removeBudgetItem = removeBudgetItem;
 window.deleteClient = deleteClient;
 window.deleteBudget = deleteBudget;
 window.exportBudgetPDF = exportBudgetPDF;

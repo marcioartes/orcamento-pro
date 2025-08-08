@@ -1,6 +1,13 @@
-// auth.js
+// auth.js - VERSÃO AUTH CORRIGIDA
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+import {
+    getAuth,
+    signInWithPopup,
+    GoogleAuthProvider,
+    signOut,
+    onAuthStateChanged // Importamos a função original
+} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCVvf8wKaZO8frn17e8vsoQQvB6ZX6wrCA",
@@ -16,10 +23,5 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-export function onAuthStateChange(callback) {
-  onAuthStateChanged(auth, (user) => {
-    callback(user);
-  });
-}
-
-export { auth, provider, signInWithPopup, signOut }
+// Removemos sua função 'onAuthStateChange' e exportamos a original do Firebase
+export { auth, provider, signInWithPopup, signOut, onAuthStateChanged };
