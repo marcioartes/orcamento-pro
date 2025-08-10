@@ -9,33 +9,39 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: #f0f2f5; /* Fundo cinza claro para destacar o app em telas maiores */
+    background: #f0f2f5;
     color: #333;
     overflow-x: hidden;
 }
 
 /* ================================== */
-/* 2. Estrutura Principal do App      */
+/* 2. Estrutura Principal e Telas     */
 /* ================================== */
+
+/* Define o "quadro do celular" para o app e para a tela de login */
 .app-container {
-    max-width: 414px; /* Mantém a aparência de mobile */
+    max-width: 414px;
     min-height: 100vh;
-    margin: 0 auto;   /* Centraliza o app na tela do desktop */
+    height: 100vh; /* Altura fixa da viewport */
+    margin: 0 auto;
     background: #ffffff;
     position: relative;
     box-shadow: 0 0 25px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column; /* Layout em coluna para permitir header fixo, conteúdo flexível e footer fixo */
 }
 
 .header {
+    flex-shrink: 0; /* Impede que o header encolha */
     display: flex;
     justify-content: space-between;
     align-items: center;
     background: linear-gradient(135deg, #6a5acd 0%, #8a7cde 100%);
     color: white;
     padding: 20px 16px 16px;
-    position: sticky;
-    top: 0;
     z-index: 100;
+    position: sticky; /* Mantém o header fixo no topo */
+    top: 0;
 }
 
 .header h1 {
@@ -45,16 +51,21 @@ body {
 
 .main-content {
     padding: 16px;
-    padding-bottom: 90px; /* Espaço para não cobrir conteúdo com o bottom-nav */
+    flex: 1; /* Ocupa todo o espaço disponível entre header e footer */
+    overflow-y: auto; /* Permite rolagem apenas no conteúdo */
+    min-height: 0; /* Permite que o flex funcione corretamente */
+    background-color: #f8f9fa; /* <-- ADICIONE ESTA LINHA */
 }
 
 .screen {
     display: none;
     animation: fadeIn 0.3s ease-in-out;
+    height: 100%; /* Garante que as telas ocupem todo o espaço disponível */
 }
 
 .screen.active {
-    display: block;
+    display: flex;
+    flex-direction: column;
 }
 
 @keyframes fadeIn {
@@ -65,11 +76,12 @@ body {
 /* ================================== */
 /* 3. Tela de Login                   */
 /* ================================== */
+
 .login-page-split {
   display: flex;
   flex-direction: column;
   width: 100%;
-  min-height: 100vh;
+  height: 100vh; /* Altura total da viewport para a tela de login */
 }
 
 .marketing-section {
@@ -81,13 +93,13 @@ body {
   align-items: center;
   padding: 40px 20px;
   text-align: center;
+  flex: 1;
 }
 
 .marketing-content { max-width: 450px; }
 .app-logo-marketing { margin: 0 auto 20px auto; }
 .marketing-title { font-size: 28px; font-weight: 600; line-height: 1.2; margin-bottom: 16px; }
 .marketing-subtitle { font-size: 16px; opacity: 0.9; margin-bottom: 30px; }
-
 .feature-list { list-style: none; padding: 0; margin: 0; display: inline-block; text-align: left; }
 .feature-item { display: flex; align-items: center; margin-bottom: 20px; font-size: 16px; }
 .feature-item svg { flex-shrink: 0; margin-right: 15px; opacity: 0.8; }
@@ -98,7 +110,7 @@ body {
   align-items: center;
   padding: 40px 20px;
   background-color: #f8f9fa;
-  flex-grow: 1;
+  flex-shrink: 0;
 }
 
 .login-card {
@@ -132,7 +144,6 @@ body {
 /* 4. Componentes Comuns              */
 /* ================================== */
 
-/* Cards Usados DENTRO do App */
 .card {
     background: white;
     border-radius: 12px;
@@ -142,7 +153,6 @@ body {
     border: 1px solid #eef;
 }
 
-/* Formulários */
 .form-group { margin-bottom: 16px; }
 .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: #555; }
 .form-group input, .form-group textarea, .form-group select {
@@ -158,57 +168,40 @@ body {
     border-color: #6a5acd;
 }
 
-/* Botões */
 .btn { padding: 12px 24px; border: none; border-radius: 8px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.3s; text-align: center; }
 .btn-primary { background: linear-gradient(135deg, #6a5acd 0%, #8a7cde 100%); color: white; }
 .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4); }
 .btn-secondary { background: #f1f3f5; color: #495057; border: 1px solid #dee2e6; }
 .btn-block { width: 100%; display: block; margin-bottom: 12px; }
-.btn-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    cursor: pointer;
-    background-color: #f1f3f5;
-    color: #495057;
-    transition: all 0.3s;
-}
+.btn-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; background-color: #f1f3f5; color: #495057; transition: all 0.3s; }
 .btn-icon:hover { background-color: #e9ecef; }
 .btn-icon.btn-danger { background-color: #ffe3e3; color: #dc3545; }
 .btn-icon.btn-danger:hover { background-color: #f8d7da; }
 .btn-icon.btn-success { background-color: #d4edda; color: #28a745; }
 .btn-icon.btn-success:hover { background-color: #c3e6cb; }
 
-/* Lista de Itens (Orçamentos/Clientes) */
-.list-item { padding: 16px; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: background-color 0.3s; }
+.list-item { padding: 16px; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; }
 .list-item:hover { background: #f8f9fa; }
 .list-item:last-child { border-bottom: none; }
+.list-item-info { flex-grow: 1; cursor: pointer; }
 .list-item-info h3 { margin-bottom: 4px; color: #333; }
 .list-item-info p { color: #666; font-size: 14px; }
 .list-item-actions { display: flex; gap: 8px; }
 
-/* Uploader de Logo */
 .logo-uploader { display: flex; flex-direction: column; align-items: center; margin-bottom: 24px; }
 #logo-preview { width: 100px; height: 100px; border-radius: 50%; object-fit: contain; border: 3px solid #eee; margin-bottom: 16px; background-color: #f8f9fa; }
 
-/* Dashboard */
 .dashboard-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
 .stat-card { background: white; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
 .stat-card h3 { color: #6a5acd; margin-bottom: 8px; }
 .stat-card p { font-size: 24px; font-weight: 600; }
 
-/* Modais */
 .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 2000; justify-content: center; align-items: center; }
 .modal.active { display: flex; }
 .modal-content { background: white; padding: 24px; border-radius: 16px; width: 90%; max-width: 400px; max-height: 85vh; overflow-y: auto; }
 .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
 .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; }
 
-/* Estado Vazio */
 .empty-state { text-align: center; padding: 40px 20px; color: #666; }
 .empty-state svg { width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.5; }
 
@@ -216,29 +209,207 @@ body {
 /* 5. Navegação Inferior              */
 /* ================================== */
 .bottom-nav {
-    position: fixed; /* Fixo na parte inferior da TELA */
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    /* Centraliza o conteúdo DENTRO da barra */
-    margin: 0 auto;
-    max-width: 414px; /* Garante que não estique em telas maiores */
-
+    flex-shrink: 0; /* Impede que a barra de navegação encolha */
     background: white;
-    padding-top: 8px;
-    padding-bottom: 8px;
+    padding: 8px 0;
     border-top: 1px solid #e0e0e0;
     display: flex;
     justify-content: space-around;
-    z-index: 1000;
+    z-index: 100;
+    position: sticky; /* Mantém a navegação fixa na parte inferior */
+    bottom: 0;
 }
 
-.nav-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; color: #6c757d; font-size: 12px; }
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    color: #6c757d;
+    font-size: 12px;
+    padding: 4px 8px;
+    transition: color 0.2s;
+}
 .nav-item.active { color: #6a5acd; }
+.nav-item:hover { color: #6a5acd; }
 .nav-item svg { width: 24px; height: 24px; margin-bottom: 4px; }
 
 /* ================================== */
-/* 6. Classes Utilitárias             */
+/* 6. Scroll personalizado para o conteúdo */
+/* ================================== */
+.main-content::-webkit-scrollbar {
+    width: 4px;
+}
+
+.main-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.main-content::-webkit-scrollbar-thumb {
+    background: rgba(106, 90, 205, 0.3);
+    border-radius: 2px;
+}
+
+.main-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(106, 90, 205, 0.5);
+}
+
+/* ================================== */
+/* 7. Classes Utilitárias             */
 /* ================================== */
 .mb-16 { margin-bottom: 16px; }
+
+/* ================================== */
+/* 8. Ajustes para telas específicas  */
+/* ================================== */
+.dashboard-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.dashboard-scrollable {
+    flex: 1;
+    overflow-y: auto;
+}
+
+/* ================================== */
+/* 9. Layout para telas com botão fixo */
+/* ================================== */
+
+/* Para telas que precisam de botão fixo - aplique a classe .screen-with-fixed-button */
+.screen-with-fixed-button {
+    height: 100%;
+}
+
+.screen-with-fixed-button .main-content {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* Botão fixo no topo */
+.screen-with-fixed-button .fixed-action-header {
+    flex-shrink: 0;
+    padding: 16px;
+    background: white;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+/* Lista que rola */
+.screen-with-fixed-button .scrollable-list {
+    flex: 1;
+    overflow-y: auto;
+    background: #f0f2f5;
+    padding: 16px;
+}
+
+/* Cards dentro da lista rolável */
+.screen-with-fixed-button .scrollable-list .card {
+    margin-bottom: 16px;
+}
+
+.screen-with-fixed-button .scrollable-list .card:last-child {
+    margin-bottom: 0;
+}
+
+/* Scroll customizado */
+.screen-with-fixed-button .scrollable-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.screen-with-fixed-button .scrollable-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.screen-with-fixed-button .scrollable-list::-webkit-scrollbar-thumb {
+    background: rgba(106, 90, 205, 0.3);
+    border-radius: 2px;
+}
+
+.screen-with-fixed-button .scrollable-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(106, 90, 205, 0.5);
+}
+
+/* ================================== */
+/* 9. Layout para telas com botão fixo */
+/* ================================== */
+
+/* Container para telas que têm botão de ação fixo no topo */
+.screen-with-fixed-button {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* Área do botão fixo (Novo Orçamento, Novo Cliente, etc.) */
+.fixed-action-header {
+    flex-shrink: 0; /* Impede que encolha */
+    padding: 16px;
+    background: white;
+    border-bottom: 1px solid #e0e0e0;
+    z-index: 50;
+    position: sticky;
+    top: 0;
+}
+
+/* Área da lista que vai rolar */
+.scrollable-list {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0; /* Permite que o flex funcione corretamente */
+}
+
+/* Remove padding da .main-content quando usar o layout com botão fixo */
+.screen.active.screen-with-fixed-button .main-content {
+    padding: 0; /* Remove o padding padrão */
+}
+
+/* Adiciona padding apenas na lista */
+.scrollable-list-content {
+    padding: 0 16px 16px 16px; /* Padding lateral e inferior */
+}
+
+/* Estilo para quando a lista está vazia */
+.scrollable-list .empty-state {
+    padding: 60px 20px;
+}
+
+/* Scroll personalizado para listas */
+.scrollable-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.scrollable-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.scrollable-list::-webkit-scrollbar-thumb {
+    background: rgba(106, 90, 205, 0.3);
+    border-radius: 2px;
+}
+
+.scrollable-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(106, 90, 205, 0.5);
+}
+
+/* Ajustes para cards dentro da lista rolável */
+.scrollable-list-content .card:last-child {
+    margin-bottom: 0;
+}
+
+/* Separador visual entre o botão fixo e a lista */
+.fixed-action-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        #e0e0e0 20%,
+        #e0e0e0 80%,
+        transparent 100%);
+}
