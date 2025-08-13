@@ -16,7 +16,7 @@ const loginContainer = document.getElementById('login-container');
 const appContainer = document.getElementById('main-app');
 
 // ===================================================================
-//  4. PONTO DE ENTRADA PRINCIPAL (O "VIGIA")
+//  4. PONTO DE ENTRADA PRINCIPAL
 // ===================================================================
 onAuthStateChanged(auth, (user) => {
   if (user) {
@@ -76,7 +76,7 @@ function adicionarEventListenersApp(userId) {
 }
 
 // ===================================================================
-//  6. HANDLERS DE EVENTOS (A "COLA" ENTRE UI E DADOS)
+//  6. HANDLERS DE EVENTOS
 // ===================================================================
 
 function handleSaveProfile(e) {
@@ -105,7 +105,7 @@ function handleSaveClient(e) {
     ui.updateDashboard(db.getBudgets(), db.getClients());
     ui.closeModal('client-modal');
 
-    // CORREÇÃO: Alerta de sucesso adicionado aqui
+    // Alerta de sucesso
     alert(currentClientId ? "Cliente atualizado com sucesso!" : "Cliente salvo com sucesso!");
 
     currentClientId = null;
@@ -163,13 +163,12 @@ function handleDeleteBudget(id) {
     }
 }
 
-// js/main.js
 
 // ===================================================================
 //  EXPOSIÇÃO GLOBAL DE FUNÇÕES PARA O HTML (onclick)
 // ===================================================================
 
-// Conecta as ações do HTML (onclick) com as funções do nosso código.
+// Conecta as ações do HTML (onclick) com as funções.
 window.login = login;
 window.logout = logout;
 window.showScreen = ui.showScreen;
