@@ -513,16 +513,18 @@ function loadBudgetItems(items) {
     calculateBudgetTotal();
 }
 
+// DENTRO DE SCRIPT.JS
+
 function addBudgetItem() {
     const container = document.getElementById("budget-items");
-    if (!container) return;
-
     const div = document.createElement("div");
     div.className = "budget-item-form";
+
+    // O HTML completo para um novo item do orçamento vai aqui.
     div.innerHTML = `
         <div class="form-group">
             <label>Descrição do Serviço</label>
-            <input type="text" class="item-description" placeholder="Descrição do serviço">
+            <input type="text" class="item-description" placeholder="Descrição do serviço" value="">
         </div>
         <div class="form-group">
             <label>Quantidade</label>
@@ -530,15 +532,25 @@ function addBudgetItem() {
         </div>
         <div class="form-group">
             <label>Preço Unitário</label>
-            <input type="number" class="item-price" step="0.01" placeholder="0.00">
+            <input type="number" class="item-price" step="0.01" placeholder="0.00" value="">
         </div>
         <div class="form-group">
             <label>Total do Item</label>
             <input type="text" class="item-total" readonly>
         </div>
-        <button type="button" class="btn btn-danger" onclick="removeBudgetItem(this)">Remover Item</button>
+        <button type="button" class="btn-icon btn-danger" style="margin-left: auto; display: block;" onclick="removeBudgetItem(this)">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+        </button>
     `;
     container.appendChild(div);
+
+    // Adiciona o listener de input para os novos campos de quantidade e preço
+    const newQuantityInput = div.querySelector('.item-quantity');
+    const newPriceInput = div.querySelector('.item-price');
+
+    newQuantityInput.addEventListener('input', () => calculateItemTotal(newQuantityInput));
+    newPriceInput.addEventListener('input', () => calculateItemTotal(newPriceInput));
+
     calculateBudgetTotal();
 }
 
