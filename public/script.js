@@ -516,87 +516,76 @@ function loadBudgetItems(items) {
 // DENTRO DE SCRIPT.JS
 
 function addBudgetItem() {
-    const container = document.getElementById("budget-items");
-    const div = document.createElement("div");
-    div.className = "budget-item-form";
+  const container = document.getElementById("budget-items");
+  if (!container) return;
 
-    // O HTML completo para um novo item do orçamento vai aqui.
-    div.innerHTML = `
-        <div class="form-group">
-            <label>Descrição do Serviço</label>
-            <input type="text" class="item-description" placeholder="Descrição do serviço" value="">
-        </div>
-        <div class="form-group">
-            <label>Quantidade</label>
-            <input type="number" class="item-quantity" value="1" min="1">
-        </div>
-        <div class="form-group">
-            <label>Preço Unitário</label>
-            <input type="number" class="item-price" step="0.01" placeholder="0.00" value="">
-        </div>
-        <div class="form-group">
-            <label>Total do Item</label>
-            <input type="text" class="item-total" readonly>
-        </div>
-        <button type="button" class="btn-icon btn-danger" style="margin-left: auto; display: block;" onclick="removeBudgetItem(this)">
-            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-        </button>
-    `;
-    container.appendChild(div);
-
-    // Adiciona o listener de input para os novos campos de quantidade e preço
-    const newQuantityInput = div.querySelector('.item-quantity');
-    const newPriceInput = div.querySelector('.item-price');
-
-    newQuantityInput.addEventListener('input', () => calculateItemTotal(newQuantityInput));
-    newPriceInput.addEventListener('input', () => calculateItemTotal(newPriceInput));
-
-    calculateBudgetTotal();
+  const div = document.createElement("div");
+  div.className = "budget-item-form";
+  div.innerHTML = `
+    <div class="form-group">
+      <label>Descrição do Serviço</label>
+      <input type="text" class="item-description" placeholder="Descrição do serviço">
+    </div>
+    <div class="form-group">
+      <label>Quantidade</label>
+      <input type="number" class="item-quantity" value="1" min="1">
+    </div>
+    <div class="form-group">
+      <label>Preço Unitário</label>
+      <input type="number" class="item-price" step="0.01" placeholder="0.00">
+    </div>
+    <div class="form-group">
+      <label>Total do Item</label>
+      <input type="text" class="item-total" readonly>
+    </div>
+    <button type="button" class="btn btn-danger" onclick="removeBudgetItem(this)">Remover Item</button>
+  `;
+  container.appendChild(div);
+  calculateBudgetTotal();
 }
-
 function removeBudgetItem(button) {
     button.parentElement.remove();
     calculateBudgetTotal();
 }
 
 function calculateItemTotal(input) {
-    if (!input) return;
-    const itemForm = input.closest(".budget-item-form");
-    if (!itemForm) return;
+  if (!input) return;
+  const itemForm = input.closest(".budget-item-form");
+  if (!itemForm) return;
 
-    const quantityInput = itemForm.querySelector(".item-quantity");
-    const priceInput = itemForm.querySelector(".item-price");
-    const totalInput = itemForm.querySelector(".item-total");
+  const quantityInput = itemForm.querySelector(".item-quantity");
+  const priceInput = itemForm.querySelector(".item-price");
+  const totalInput = itemForm.querySelector(".item-total");
+
+  const quantity = quantityInput ? parseFloat(quantityInput.value) || 0 : 0;
+  const price = priceInput ? parseFloat(priceInput.value) || 0 : 0;
+  const total = quantity * price;
+
+  if (totalInput) {
+    totalInput.value = `R$ ${total.toFixed(2).replace(".", ",")}`;
+  }
+
+  calculateBudgetTotal();
+}}
+
+function calculateBudgetTotal() {
+  const forms = document.querySelectorAll(".budget-item-form");
+  let total = 0;
+
+  forms.forEach(form => {
+    const quantityInput = form.querySelector(".item-quantity");
+    const priceInput = form.querySelector(".item-price");
 
     const quantity = quantityInput ? parseFloat(quantityInput.value) || 0 : 0;
     const price = priceInput ? parseFloat(priceInput.value) || 0 : 0;
-    const total = quantity * price;
 
-    if (totalInput) {
-        totalInput.value = `R$ ${total.toFixed(2).replace(".", ",")}`;
-    }
+    total += quantity * price;
+  });
 
-    calculateBudgetTotal();
-}
-
-function calculateBudgetTotal() {
-    const forms = document.querySelectorAll(".budget-item-form");
-    let total = 0;
-
-    forms.forEach(form => {
-        const quantityInput = form.querySelector(".item-quantity");
-        const priceInput = form.querySelector(".item-price");
-
-        const quantity = quantityInput ? parseFloat(quantityInput.value) || 0 : 0;
-        const price = priceInput ? parseFloat(priceInput.value) || 0 : 0;
-
-        total += quantity * price;
-    });
-
-    const budgetTotalInput = document.getElementById("budget-total");
-    if (budgetTotalInput) {
-        budgetTotalInput.value = `R$ ${total.toFixed(2).replace(".", ",")}`;
-    }
+  const budgetTotalInput = document.getElementById("budget-total");
+  if (budgetTotalInput) {
+    budgetTotalInput.value = `R$ ${total.toFixed(2).replace(".", ",")}`;
+  }
 }
 
 function collectBudgetItems() {
