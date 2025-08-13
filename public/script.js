@@ -543,30 +543,39 @@ function addBudgetItem() {
   container.appendChild(div);
   calculateBudgetTotal();
 }
+
 function removeBudgetItem(button) {
     button.parentElement.remove();
     calculateBudgetTotal();
 }
+// Substitua o event listener de input por delegação no contêiner
+document.getElementById("budget-items").addEventListener("input", (e) => {
+  if (
+    e.target.classList.contains("item-quantity") ||
+    e.target.classList.contains("item-price")
+  ) {
+    calculateItemTotal(e.target);
+  }
+});
 
 function calculateItemTotal(input) {
   if (!input) return;
   const itemForm = input.closest(".budget-item-form");
-  if (!itemForm) return;
+  if (!itemForm) return; // Sai se o formulário pai não for encontrado
 
   const quantityInput = itemForm.querySelector(".item-quantity");
   const priceInput = itemForm.querySelector(".item-price");
   const totalInput = itemForm.querySelector(".item-total");
 
-  const quantity = quantityInput ? parseFloat(quantityInput.value) || 0 : 0;
-  const price = priceInput ? parseFloat(priceInput.value) || 0 : 0;
+  if (!quantityInput || !priceInput || !totalInput) return; // Verifica se todos os elementos existem
+
+  const quantity = parseFloat(quantityInput.value) || 0;
+  const price = parseFloat(priceInput.value) || 0;
   const total = quantity * price;
 
-  if (totalInput) {
-    totalInput.value = `R$ ${total.toFixed(2).replace(".", ",")}`;
-  }
-
+  totalInput.value = `R$ ${total.toFixed(2).replace(".", ",")}`;
   calculateBudgetTotal();
-}}
+}
 
 function calculateBudgetTotal() {
   const forms = document.querySelectorAll(".budget-item-form");
