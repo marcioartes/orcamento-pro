@@ -1,14 +1,9 @@
 // js/ui.js
 
-// Importa as funções de dados necessárias. A UI não deve acessar o DataManager diretamente.
 import { getClients, getBudgets } from './database.js';
-// Importa a função de formatação de CPF/CNPJ.
 import { formatCpfCnpj } from './utils.js';
 
-// ======================================================
-// Funções de Controle de UI (Telas e Modais)
-// ======================================================
-
+// --- Funções de Controle de UI (Telas e Modais) ---
 export function showScreen(screenId) {
     document.querySelectorAll(".screen").forEach((s) => s.classList.remove("active"));
     const screenElement = document.getElementById(screenId);
@@ -83,9 +78,7 @@ export function updateDashboard() {
     document.getElementById("total-clients").textContent = clients.length;
 }
 
-// ======================================================
-// Funções de Renderização (Desenhar Listas e Forms na Tela)
-// ======================================================
+// --- Funções de Renderização (Desenhar Listas e Forms na Tela) ---
 
 export function renderProfile(profile) {
     document.getElementById("company-name").value = profile.name || "";
@@ -104,14 +97,13 @@ export function renderClientList(clients) {
     }
     list.innerHTML = clients.map((client) => `
         <div class="list-item">
-            <div class="list-item-info">
+            <div class="list-item-info" onclick="window.handleOpenClientModal('${client.id}')">
                 <h3>${client.name}</h3>
                 <p>${client.email || "Email não informado"}</p>
-                <p>${client.phone || "Telefone não informado"}</p>
             </div>
             <div class="list-item-actions">
                 <button class="btn-icon btn-secondary" onclick="window.handleOpenClientModal('${client.id}')">
-                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 012.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 012.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                 </button>
                 <button class="btn-icon btn-danger" onclick="window.handleDeleteClient('${client.id}')">
                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
@@ -241,10 +233,7 @@ export function handleLogoPreview(logoInput) {
     }
 }
 
-// ======================================================
-// Funções de Leitura de Formulários (Getters de UI)
-// ======================================================
-
+// --- Funções de Leitura de Formulários (Getters de UI) ---
 export function getProfileFormData() {
     return {
         name: document.getElementById("company-name").value.trim(),
@@ -255,7 +244,6 @@ export function getProfileFormData() {
         logo: document.getElementById("logo-preview").src,
     };
 }
-
 export function getClientFormData(currentClientId) {
     const name = document.getElementById("client-name").value.trim();
     if (!name) {
@@ -272,7 +260,6 @@ export function getClientFormData(currentClientId) {
         createdAt: new Date().toISOString()
     };
 }
-
 export function getBudgetFormData(currentBudgetId, items) {
      return {
         id: currentBudgetId || Date.now().toString(),
@@ -284,34 +271,6 @@ export function getBudgetFormData(currentBudgetId, items) {
         createdAt: new Date().toISOString()
     };
 }
-
-// ======================================================
-// Funções de Cálculo (que interagem com a UI)
-// ======================================================
-
-export function calculateItemTotal(input) {
-    const itemForm = input.closest(".budget-item-form");
-    if (!itemForm) return;
-    const quantity = parseFloat(itemForm.querySelector(".item-quantity")?.value) || 0;
-    const price = parseFloat(itemForm.querySelector(".item-price")?.value) || 0;
-    const total = quantity * price;
-    const totalInput = itemForm.querySelector(".item-total");
-    if(totalInput) totalInput.value = `R$ ${total.toFixed(2).replace(".", ",")}`;
-    calculateBudgetTotal();
-}
-
-export function calculateBudgetTotal() {
-    const forms = document.querySelectorAll(".budget-item-form");
-    let total = 0;
-    forms.forEach(form => {
-        const q = parseFloat(form.querySelector(".item-quantity")?.value) || 0;
-        const p = parseFloat(form.querySelector(".item-price")?.value) || 0;
-        total += q * p;
-    });
-    const budgetTotalInput = document.getElementById("budget-total");
-    if(budgetTotalInput) budgetTotalInput.value = `R$ ${total.toFixed(2).replace(".", ",")}`;
-}
-
 export function collectBudgetItems() {
     const forms = document.querySelectorAll(".budget-item-form");
     const items = [];
@@ -328,4 +287,27 @@ export function collectBudgetItems() {
         return null;
     }
     return items;
+}
+
+// --- Funções de Cálculo (que interagem com a UI) ---
+export function calculateItemTotal(input) {
+    const itemForm = input.closest(".budget-item-form");
+    if (!itemForm) return;
+    const quantity = parseFloat(itemForm.querySelector(".item-quantity")?.value) || 0;
+    const price = parseFloat(itemForm.querySelector(".item-price")?.value) || 0;
+    const total = quantity * price;
+    const totalInput = itemForm.querySelector(".item-total");
+    if(totalInput) totalInput.value = `R$ ${total.toFixed(2).replace(".", ",")}`;
+    calculateBudgetTotal();
+}
+export function calculateBudgetTotal() {
+    const forms = document.querySelectorAll(".budget-item-form");
+    let total = 0;
+    forms.forEach(form => {
+        const q = parseFloat(form.querySelector(".item-quantity")?.value) || 0;
+        const p = parseFloat(form.querySelector(".item-price")?.value) || 0;
+        total += q * p;
+    });
+    const budgetTotalInput = document.getElementById("budget-total");
+    if(budgetTotalInput) budgetTotalInput.value = `R$ ${total.toFixed(2).replace(".", ",")}`;
 }

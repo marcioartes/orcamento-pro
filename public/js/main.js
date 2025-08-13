@@ -1,38 +1,29 @@
 // js/main.js
 
-// --- 1. Importações dos Módulos ---
 import { auth, onAuthStateChanged, login, logout } from './auth.js';
 import * as db from './database.js';
 import * as ui from './ui.js';
 import * as utils from './utils.js';
 import { exportBudgetPDF } from './pdf.js';
 
-// --- 2. Variáveis Globais de Estado ---
 let currentBudgetId = null;
 let currentClientId = null;
 
-// --- 3. Referências aos Contêineres Principais ---
 const loginContainer = document.getElementById('login-container');
 const appContainer = document.getElementById('main-app');
 
-// ===================================================================
-//  4. PONTO DE ENTRADA PRINCIPAL
-// ===================================================================
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    appContainer.style.display = 'block';
+    appContainer.style.display = 'flex';
     loginContainer.style.display = 'none';
     carregarDadosIniciais(user.uid);
     adicionarEventListenersApp(user.uid);
   } else {
     appContainer.style.display = 'none';
-    loginContainer.style.display = 'block';
+    loginContainer.style.display = 'flex';
   }
 });
 
-// ===================================================================
-//  5. FUNÇÕES DE INICIALIZAÇÃO E ORQUESTRAÇÃO
-// ===================================================================
 function carregarDadosIniciais(userId) {
   const profile = db.getProfile();
   const clients = db.getClients();
@@ -42,7 +33,7 @@ function carregarDadosIniciais(userId) {
   ui.renderClientList(clients);
   ui.renderBudgetList(budgets, clients);
   ui.renderRecentBudgets(budgets, clients);
-  ui.updateDashboard(budgets, clients);
+  ui.updateDashboard();
   ui.showScreen('dashboard-screen');
 }
 
@@ -51,7 +42,7 @@ function adicionarEventListenersApp(userId) {
     document.getElementById("client-form").addEventListener("submit", handleSaveClient);
     document.getElementById("budget-form").addEventListener("submit", handleSaveBudget);
 
-    document.getElementById("company-cnpj").addEventListener("input", (e) => utils.formatCNPJ(e.target));
+    document.getElementById("company-cnpj").addEventListener("input", (e) => utils.formatCpfCnpj(e.target));
     const clientDocumentInput = document.getElementById("client-document");
     if(clientDocumentInput) {
         clientDocumentInput.addEventListener("input", (e) => utils.formatCpfCnpj(e.target));
@@ -74,10 +65,6 @@ function adicionarEventListenersApp(userId) {
         }
     });
 }
-
-// ===================================================================
-//  6. HANDLERS DE EVENTOS
-// ===================================================================
 
 function handleSaveProfile(e) {
     e.preventDefault();
@@ -102,12 +89,9 @@ function handleSaveClient(e) {
 
     ui.renderClientList(db.getClients());
     ui.populateClientOptions(db.getClients());
-    ui.updateDashboard(db.getBudgets(), db.getClients());
+    ui.updateDashboard();
     ui.closeModal('client-modal');
-
-    // Alerta de sucesso
     alert(currentClientId ? "Cliente atualizado com sucesso!" : "Cliente salvo com sucesso!");
-
     currentClientId = null;
 }
 
@@ -138,11 +122,9 @@ function handleSaveBudget(e) {
     const clients = db.getClients();
     ui.renderBudgetList(db.getBudgets(), clients);
     ui.renderRecentBudgets(db.getBudgets(), clients);
-    ui.updateDashboard(db.getBudgets(), clients);
+    ui.updateDashboard();
     ui.closeModal('budget-modal');
-
     alert(currentBudgetId ? "Orçamento atualizado com sucesso!" : "Orçamento salvo com sucesso!");
-
     currentBudgetId = null;
 }
 
@@ -150,7 +132,7 @@ function handleDeleteClient(id) {
     if (db.deleteClient(id)) {
         ui.renderClientList(db.getClients());
         ui.populateClientOptions(db.getClients());
-        ui.updateDashboard(db.getBudgets(), db.getClients());
+        ui.updateDashboard();
     }
 }
 
@@ -159,36 +141,30 @@ function handleDeleteBudget(id) {
         const clients = db.getClients();
         ui.renderBudgetList(db.getBudgets(), clients);
         ui.renderRecentBudgets(db.getBudgets(), clients);
-        ui.updateDashboard(db.getBudgets(), clients);
+        ui.updateDashboard();
     }
 }
-
 
 // ===================================================================
 //  EXPOSIÇÃO GLOBAL DE FUNÇÕES PARA O HTML (onclick)
 // ===================================================================
 
-// Conecta as ações do HTML (onclick) com as funções.
 window.login = login;
 window.logout = logout;
 window.showScreen = ui.showScreen;
 
-// Funções chamadas pelos botões "Novo Cliente" e "Novo Orçamento"
-// Elas chamam as funções 'handle' sem passar um ID.
-window.openClientModal = () => window.handleOpenClientModal(null);
-window.openBudgetModal = () => window.handleOpenBudgetModal(null);
-
-// Funções "Handler" que orquestram a abertura dos modais (para novo ou edição)
-window.handleOpenClientModal = (clientId = null) => {
-    const clientToEdit = clientId ? db.getClients().find(c => c.id === clientId) : null;
+window.openClientModal = (id = null) => {
+    const clientToEdit = id ? db.getClients().find(c => c.id === id) : null;
     currentClientId = ui.openClientModal(clientToEdit);
 };
-window.handleOpenBudgetModal = (budgetId = null) => {
-    const budgetToEdit = budgetId ? db.getBudgets().find(b => b.id === budgetId) : null;
+window.openBudgetModal = (id = null) => {
+    const budgetToEdit = id ? db.getBudgets().find(b => b.id === id) : null;
     currentBudgetId = ui.openBudgetModal(budgetToEdit, db.getClients());
 };
 
-// Funções para fechar modais e manipular itens de orçamento
+window.handleOpenClientModal = window.openClientModal;
+window.handleOpenBudgetModal = window.openBudgetModal;
+
 window.closeModal = (id) => {
     ui.closeModal(id);
     currentClientId = null;
@@ -196,8 +172,6 @@ window.closeModal = (id) => {
 };
 window.addBudgetItem = ui.addBudgetItem;
 window.removeBudgetItem = ui.removeBudgetItem;
-
-// Funções para deletar e exportar
 window.handleDeleteClient = handleDeleteClient;
 window.handleDeleteBudget = handleDeleteBudget;
 window.exportBudgetPDF = exportBudgetPDF;
