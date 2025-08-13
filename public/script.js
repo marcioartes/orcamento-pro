@@ -54,16 +54,18 @@ function adicionarEventListenersApp() {
 
     const logoInput = document.getElementById('company-logo');
     const logoPreview = document.getElementById('logo-preview');
-    logoInput.addEventListener('change', () => {
-        const file = logoInput.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                logoPreview.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-    });
+    if (logoInput && logoPreview) {
+        logoInput.addEventListener('change', () => {
+            const file = logoInput.files?.[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    logoPreview.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
 
     document.addEventListener("input", (e) => {
       if (
@@ -210,12 +212,19 @@ function closeModal(modalId) {
 
 function loadProfile() {
     const profile = DataManager.get("profile") || {};
-    document.getElementById("company-name").value = profile.name || "";
-    document.getElementById("company-cnpj").value = profile.cnpj || "";
-    document.getElementById("company-address").value = profile.address || "";
-    document.getElementById("company-phone").value = profile.phone || "";
-    document.getElementById("company-email").value = profile.email || "";
-    document.getElementById("logo-preview").src = profile.logo || "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9IiNmMmYyZjIiLz4KPC9zdmc+Cg==";
+    const name = document.getElementById("company-name");
+    const cnpj = document.getElementById("company-cnpj");
+    const address = document.getElementById("company-address");
+    const phone = document.getElementById("company-phone");
+    const email = document.getElementById("company-email");
+    const logoPreview = document.getElementById("logo-preview");
+
+    if (name) name.value = profile.name || "";
+    if (cnpj) cnpj.value = profile.cnpj || "";
+    if (address) address.value = profile.address || "";
+    if (phone) phone.value = profile.phone || "";
+    if (email) email.value = profile.email || "";
+    if (logoPreview) logoPreview.src = profile.logo || "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9IiNmMmYyZjIiLz4KPC9zdmc+Cg==";
 }
 
 function saveProfile(e) {
@@ -231,8 +240,6 @@ function saveProfile(e) {
     DataManager.set("profile", profile);
     alert("Perfil salvo com sucesso!");
 }
-
-// DENTRO DE SCRIPT.JS - SUBSTITUA TODA A SUA FUNÇÃO loadClients
 
 function loadClients() {
     const clients = DataManager.get("clients") || [];
@@ -298,7 +305,6 @@ function saveClient(e) {
     }
     DataManager.set("clients", clients);
     loadClients();
-    //loadClientOptions();
     updateDashboard();
     closeModal("client-modal");
     alert(currentClientId ? "Cliente atualizado!" : "Cliente salvo!");
@@ -317,6 +323,7 @@ function deleteClient(id) {
 function loadClientOptions() {
     const clients = DataManager.get("clients") || [];
     const select = document.getElementById("budget-client");
+    if (!select) return;
     select.innerHTML = '<option value="">Selecione um cliente</option>';
     clients.forEach(client => {
         const option = document.createElement("option");
@@ -325,8 +332,6 @@ function loadClientOptions() {
         select.appendChild(option);
     });
 }
-
-// DENTRO DE SCRIPT.JS - SUBSTITUA TODA A SUA FUNÇÃO loadBudgets POR ESTA
 
 function loadBudgets() {
     const budgets = DataManager.get("budgets") || [];
@@ -386,7 +391,6 @@ function loadBudgets() {
 
     list.innerHTML = itemsHTML;
 
-    // Recent budgets
     const recentHTML = sorted.slice(0, 3).map(b => {
         const client = clients.find(c => c.id === b.clientId);
         const total = b.items.reduce((sum, i) => sum + (i.quantity * i.price), 0);
@@ -449,12 +453,10 @@ function deleteBudget(id) {
     }
 }
 
-// DENTRO DE SCRIPT.JS
-
 function resetBudgetItems() {
     const container = document.getElementById("budget-items");
+    if (!container) return;
 
-    // SUBSTITUA SEU innerHTML SIMPLIFICADO POR ESTE BLOCO COMPLETO:
     container.innerHTML = `
         <div class="budget-item-form">
             <div class="form-group">
@@ -475,20 +477,17 @@ function resetBudgetItems() {
             </div>
         </div>`;
 
-    calculateBudgetTotal(); // Agora esta função vai encontrar os campos acima.
+    calculateBudgetTotal();
 }
-
-// DENTRO DE SCRIPT.JS - SUBSTITUA TODA A SUA FUNÇÃO loadBudgetItems
 
 function loadBudgetItems(items) {
     const container = document.getElementById("budget-items");
-    container.innerHTML = ""; // Limpa a lista antiga, caso exista
+    if (!container) return;
+    container.innerHTML = "";
 
     items.forEach((item, index) => {
         const div = document.createElement("div");
         div.className = "budget-item-form";
-
-        // O HTML AQUI DENTRO PRECISA ESTAR COMPLETO, com todos os inputs
         div.innerHTML = `
             <div class="form-group">
                 <label>Descrição do Serviço</label>
@@ -511,14 +510,34 @@ function loadBudgetItems(items) {
         container.appendChild(div);
     });
 
-    calculateBudgetTotal(); // Esta chamada agora encontrará os inputs e funcionará
+    calculateBudgetTotal();
 }
 
 function addBudgetItem() {
     const container = document.getElementById("budget-items");
+    if (!container) return;
+
     const div = document.createElement("div");
     div.className = "budget-item-form";
-    div.innerHTML = `...`; // Simplificado
+    div.innerHTML = `
+        <div class="form-group">
+            <label>Descrição do Serviço</label>
+            <input type="text" class="item-description" placeholder="Descrição do serviço">
+        </div>
+        <div class="form-group">
+            <label>Quantidade</label>
+            <input type="number" class="item-quantity" value="1" min="1">
+        </div>
+        <div class="form-group">
+            <label>Preço Unitário</label>
+            <input type="number" class="item-price" step="0.01" placeholder="0.00">
+        </div>
+        <div class="form-group">
+            <label>Total do Item</label>
+            <input type="text" class="item-total" readonly>
+        </div>
+        <button type="button" class="btn btn-danger" onclick="removeBudgetItem(this)">Remover Item</button>
+    `;
     container.appendChild(div);
     calculateBudgetTotal();
 }
@@ -529,44 +548,63 @@ function removeBudgetItem(button) {
 }
 
 function calculateItemTotal(input) {
+    if (!input) return;
     const itemForm = input.closest(".budget-item-form");
-    const quantity = parseFloat(itemForm.querySelector(".item-quantity").value) || 0;
-    const price = parseFloat(itemForm.querySelector(".item-price").value) || 0;
+    if (!itemForm) return;
+
+    const quantityInput = itemForm.querySelector(".item-quantity");
+    const priceInput = itemForm.querySelector(".item-price");
+    const totalInput = itemForm.querySelector(".item-total");
+
+    const quantity = quantityInput ? parseFloat(quantityInput.value) || 0 : 0;
+    const price = priceInput ? parseFloat(priceInput.value) || 0 : 0;
     const total = quantity * price;
-    itemForm.querySelector(".item-total").value = `R$ ${total.toFixed(2).replace(".", ",")}`;
+
+    if (totalInput) {
+        totalInput.value = `R$ ${total.toFixed(2).replace(".", ",")}`;
+    }
+
     calculateBudgetTotal();
 }
 
 function calculateBudgetTotal() {
     const forms = document.querySelectorAll(".budget-item-form");
     let total = 0;
+
     forms.forEach(form => {
-        const q = parseFloat(form.querySelector(".item-quantity").value) || 0;
-        const p = parseFloat(form.querySelector(".item-price").value) || 0;
-        total += q * p;
+        const quantityInput = form.querySelector(".item-quantity");
+        const priceInput = form.querySelector(".item-price");
+
+        const quantity = quantityInput ? parseFloat(quantityInput.value) || 0 : 0;
+        const price = priceInput ? parseFloat(priceInput.value) || 0 : 0;
+
+        total += quantity * price;
     });
-    document.getElementById("budget-total").value = `R$ ${total.toFixed(2).replace(".", ",")}`;
+
+    const budgetTotalInput = document.getElementById("budget-total");
+    if (budgetTotalInput) {
+        budgetTotalInput.value = `R$ ${total.toFixed(2).replace(".", ",")}`;
+    }
 }
 
 function collectBudgetItems() {
     const forms = document.querySelectorAll(".budget-item-form");
     const items = [];
+
     forms.forEach(form => {
-        const description = form.querySelector(".item-description").value.trim();
-        const quantity = parseFloat(form.querySelector(".item-quantity").value) || 0;
-        const price = parseFloat(form.querySelector(".item-price").value) || 0;
-        if (description && quantity > 0 && price >= 0) {
+        const description = form.querySelector(".item-description")?.value.trim();
+        const quantity = parseFloat(form.querySelector(".item-quantity")?.value) || 0;
+        const price = parseFloat(form.querySelector(".item-price")?.value) || 0;
+
+        if (description && quantity > 0) {
             items.push({ description, quantity, price });
         }
     });
+
     return items;
 }
 
-/**
- * Gera e abre uma janela de impressão com o orçamento em formato de PDF.
- */
 function exportBudgetPDF(id) {
-    // Busca os dados necessários.
     const budgets = DataManager.get("budgets") || [];
     const budget = budgets.find(b => b.id === id);
 
@@ -580,7 +618,6 @@ function exportBudgetPDF(id) {
     const client = clients.find(c => c.id === budget.clientId);
     const total = budget.items.reduce((sum, i) => sum + (i.quantity * i.price), 0);
 
-    // Lógica para incluir o logo no cabeçalho
     let logoHtml = '';
     if (profile.logo) {
         logoHtml = `<img src="${profile.logo}" alt="Logotipo da Empresa" style="max-height: 80px; max-width: 180px; object-fit: contain;" />`;
@@ -588,7 +625,6 @@ function exportBudgetPDF(id) {
 
     const printWindow = window.open("", "_blank");
 
-    // SUBSTITUA O SEU BLOCO "document.write" POR ESTE BLOCO COMPLETO E CORRIGIDO
     printWindow.document.write(`
     <!DOCTYPE html>
     <html lang="pt-BR">
@@ -604,7 +640,6 @@ function exportBudgetPDF(id) {
     </head>
     <body>
         <div style="max-width: 800px; margin: 0 auto;">
-
             <div style="display: flex; align-items: center; border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 20px;">
                 <div style="flex: 0 0 30%; text-align: left;">
                     ${logoHtml}
@@ -617,9 +652,7 @@ function exportBudgetPDF(id) {
                     <p>Telefone: ${profile.phone || "Não informado"}</p>
                 </div>
             </div>
-
             <h2 style="margin-top: 30px; font-size: 22px; text-align: center;">ORÇAMENTO #${budget.id.slice(-6)}</h2>
-
             <div style="margin-bottom: 30px; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
               <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 16px;">Dados do Cliente:</h3>
               <p><strong>Cliente:</strong> ${client?.name || "Não informado"}</p>
@@ -627,7 +660,6 @@ function exportBudgetPDF(id) {
               <p><strong>Endereço:</strong> ${client?.address || "Não informado"}</p>
               <p><strong>Email:</strong> ${client?.email || "Não informado"}</p>
             </div>
-
             <table style="width: 100%; border-collapse: collapse;">
                 <thead>
                     <tr style="background: #f5f5f5;">
@@ -647,17 +679,14 @@ function exportBudgetPDF(id) {
                         </tr>`).join("")}
                 </tbody>
             </table>
-
             <div style="text-align: right; font-size: 18px; font-weight: bold; margin-top: 20px;">
                 TOTAL GERAL: R$ ${total.toFixed(2).replace(".", ",")}
             </div>
-
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
                 <p><strong>Prazo de Entrega:</strong> ${budget.delivery || "A combinar"}</p>
                 <p><strong>Forma de Pagamento:</strong> ${budget.payment || "A combinar"}</p>
                 ${budget.notes ? `<p style="margin-top: 10px;"><strong>Observações:</strong><br>${budget.notes.replace(/\n/g, '<br>')}</p>` : ''}
             </div>
-
             <div style="margin-top: 40px; text-align: center; color: #666; font-size: 12px;">
                 <p>Orçamento gerado em: ${new Date().toLocaleString("pt-BR")}</p>
                 <p>Octopus Software & Design. 41.98793-7009</p>
@@ -666,16 +695,18 @@ function exportBudgetPDF(id) {
     </body>
     </html>`);
 
-    // **IMPORTANTE:** Reative estas duas linhas!
     printWindow.document.close();
-    setTimeout(() => printWindow.print(), 500); // Aumentei para 500ms por segurança
+    setTimeout(() => printWindow.print(), 500);
 }
 
 function updateDashboard() {
     const budgets = DataManager.get("budgets") || [];
     const clients = DataManager.get("clients") || [];
-    document.getElementById("total-budgets").textContent = budgets.length;
-    document.getElementById("total-clients").textContent = clients.length;
+    const totalBudgetsEl = document.getElementById("total-budgets");
+    const totalClientsEl = document.getElementById("total-clients");
+
+    if (totalBudgetsEl) totalBudgetsEl.textContent = budgets.length;
+    if (totalClientsEl) totalClientsEl.textContent = clients.length;
 }
 
 function formatCNPJ(e) {
