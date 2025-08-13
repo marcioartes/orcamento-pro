@@ -19,26 +19,48 @@ export function showScreen(screenId) {
         "clients-screen": "Clientes",
         "profile-screen": "Meu Perfil",
     };
-    document.getElementById("header-title").textContent = titles[screenId] || "Orçamento PRO";
+    const headerTitle = document.getElementById("header-title");
+    if (headerTitle) {
+        headerTitle.textContent = titles[screenId] || "Orçamento PRO";
+    }
 }
 
 export function openClientModal(client = null) {
     const modal = document.getElementById("client-modal");
     const form = document.getElementById("client-form");
+    if (!modal || !form) {
+        console.error("Modal ou formulário de cliente não encontrado");
+        return null;
+    }
+
     form.reset();
 
     if (client) {
-        document.querySelector("#client-modal .modal-title").textContent = "Editar Cliente";
-        document.getElementById("client-name").value = client.name;
-        document.getElementById("client-email").value = client.email || "";
-        document.getElementById("client-phone").value = client.phone || "";
-        document.getElementById("client-address").value = client.address || "";
-        const clientDocumentInput = document.getElementById("client-document");
-        clientDocumentInput.value = client.documento || "";
-        formatCpfCnpj(clientDocumentInput);
+        const modalTitle = document.querySelector("#client-modal .modal-title");
+        if (modalTitle) modalTitle.textContent = "Editar Cliente";
+
+        const fields = {
+            "client-name": client.name,
+            "client-email": client.email || "",
+            "client-phone": client.phone || "",
+            "client-address": client.address || "",
+            "client-document": client.documento || ""
+        };
+
+        for (const [fieldId, value] of Object.entries(fields)) {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.value = value;
+                if (fieldId === "client-document") {
+                    formatCpfCnpj(field);
+                }
+            }
+        }
     } else {
-        document.querySelector("#client-modal .modal-title").textContent = "Novo Cliente";
+        const modalTitle = document.querySelector("#client-modal .modal-title");
+        if (modalTitle) modalTitle.textContent = "Novo Cliente";
     }
+
     modal.classList.add("active");
     return client ? client.id : null;
 }
@@ -46,21 +68,37 @@ export function openClientModal(client = null) {
 export function openBudgetModal(budget = null, clients = []) {
     const modal = document.getElementById("budget-modal");
     const form = document.getElementById("budget-form");
-    form.reset();
+    if (!modal || !form) {
+        console.error("Modal ou formulário de orçamento não encontrado");
+        return null;
+    }
 
+    form.reset();
     populateClientOptions(clients);
 
     if (budget) {
-        document.querySelector("#budget-modal .modal-title").textContent = "Editar Orçamento";
-        document.getElementById("budget-client").value = budget.clientId;
-        document.getElementById("budget-delivery").value = budget.delivery || "";
-        document.getElementById("budget-payment").value = budget.payment || "";
-        document.getElementById("budget-notes").value = budget.notes || "";
+        const modalTitle = document.querySelector("#budget-modal .modal-title");
+        if (modalTitle) modalTitle.textContent = "Editar Orçamento";
+
+        const fields = {
+            "budget-client": budget.clientId,
+            "budget-delivery": budget.delivery || "",
+            "budget-payment": budget.payment || "",
+            "budget-notes": budget.notes || ""
+        };
+
+        for (const [fieldId, value] of Object.entries(fields)) {
+            const field = document.getElementById(fieldId);
+            if (field) field.value = value;
+        }
+
         renderBudgetItems(budget.items);
     } else {
-        document.querySelector("#budget-modal .modal-title").textContent = "Novo Orçamento";
+        const modalTitle = document.querySelector("#budget-modal .modal-title");
+        if (modalTitle) modalTitle.textContent = "Novo Orçamento";
         renderBudgetItems();
     }
+
     modal.classList.add("active");
     return budget ? budget.id : null;
 }
@@ -74,27 +112,45 @@ export function closeModal(modalId) {
 export function updateDashboard() {
     const budgets = getBudgets();
     const clients = getClients();
-    document.getElementById("total-budgets").textContent = budgets.length;
-    document.getElementById("total-clients").textContent = clients.length;
+
+    const totalBudgetsEl = document.getElementById("total-budgets");
+    const totalClientsEl = document.getElementById("total-clients");
+
+    if (totalBudgetsEl) totalBudgetsEl.textContent = budgets.length;
+    if (totalClientsEl) totalClientsEl.textContent = clients.length;
 }
 
 // --- Funções de Renderização (Desenhar Listas e Forms na Tela) ---
 
 export function renderProfile(profile) {
-    document.getElementById("company-name").value = profile.name || "";
-    document.getElementById("company-cnpj").value = profile.cnpj || "";
-    document.getElementById("company-address").value = profile.address || "";
-    document.getElementById("company-phone").value = profile.phone || "";
-    document.getElementById("company-email").value = profile.email || "";
-    document.getElementById("logo-preview").src = profile.logo || "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9IiNmMmYyZjIiLz4KPC9zdmc+Cg==";
+    const fields = {
+        "company-name": profile.name || "",
+        "company-cnpj": profile.cnpj || "",
+        "company-address": profile.address || "",
+        "company-phone": profile.phone || "",
+        "company-email": profile.email || ""
+    };
+
+    for (const [fieldId, value] of Object.entries(fields)) {
+        const field = document.getElementById(fieldId);
+        if (field) field.value = value;
+    }
+
+    const logoPreview = document.getElementById("logo-preview");
+    if (logoPreview) {
+        logoPreview.src = profile.logo || "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9IiNmMmYyZjIiLz4KPC9zdmc+Cg==";
+    }
 }
 
 export function renderClientList(clients) {
     const list = document.getElementById("clients-list");
+    if (!list) return;
+
     if (!clients || clients.length === 0) {
         list.innerHTML = `<div class="empty-state"><p>Nenhum cliente encontrado</p></div>`;
         return;
     }
+
     list.innerHTML = clients.map((client) => `
         <div class="list-item">
             <div class="list-item-info" onclick="window.handleOpenClientModal('${client.id}')">
@@ -114,10 +170,13 @@ export function renderClientList(clients) {
 
 export function renderBudgetList(budgets, clients) {
     const list = document.getElementById("budgets-list");
+    if (!list) return;
+
     if (!budgets || budgets.length === 0) {
         list.innerHTML = `<div class="empty-state"><p>Nenhum orçamento encontrado</p></div>`;
         return;
     }
+
     const sorted = [...budgets].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     list.innerHTML = sorted.map(b => {
         const client = clients.find(c => c.id === b.clientId);
@@ -146,10 +205,13 @@ export function renderBudgetList(budgets, clients) {
 
 export function renderRecentBudgets(budgets, clients) {
     const recent = document.getElementById("recent-budgets");
+    if (!recent) return;
+
     if (!budgets || budgets.length === 0) {
         recent.innerHTML = `<div class="empty-state"><p>Nenhum orçamento criado ainda</p></div>`;
         return;
     }
+
     const sorted = [...budgets].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     recent.innerHTML = sorted.slice(0, 3).map(b => {
         const client = clients.find(c => c.id === b.clientId);
@@ -168,6 +230,7 @@ export function renderRecentBudgets(budgets, clients) {
 export function populateClientOptions(clients) {
     const select = document.getElementById("budget-client");
     if (!select) return;
+
     select.innerHTML = '<option value="">Selecione um cliente</option>';
     clients.forEach(client => {
         const option = document.createElement("option");
@@ -179,6 +242,11 @@ export function populateClientOptions(clients) {
 
 export function renderBudgetItems(items = []) {
     const container = document.getElementById("budget-items");
+    if (!container) {
+        console.error("Container de itens do orçamento não encontrado");
+        return;
+    }
+
     container.innerHTML = "";
     if (items.length === 0) {
         addBudgetItem();
@@ -189,6 +257,11 @@ export function renderBudgetItems(items = []) {
 
 export function addBudgetItem(item = null) {
     const container = document.getElementById("budget-items");
+    if (!container) {
+        console.error("Container de itens do orçamento não encontrado");
+        return;
+    }
+
     const div = document.createElement("div");
     div.className = "budget-item-form";
     div.innerHTML = `
@@ -208,21 +281,31 @@ export function addBudgetItem(item = null) {
             <label>Total</label>
             <input type="text" class="item-total" readonly>
         </div>
-        <button type="button" class="btn-icon btn-danger" style="margin-left: auto; display: block;" onclick="removeBudgetItem(this)">
+        <button type="button" class="btn-icon btn-danger" style="margin-left: auto; display: block;" onclick="window.removeBudgetItem(this)">
             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
         </button>
     `;
     container.appendChild(div);
-    calculateItemTotal(div.querySelector('.item-quantity'));
+
+    // Calcular o total inicial do item
+    const quantityInput = div.querySelector('.item-quantity');
+    if (quantityInput) {
+        calculateItemTotal(quantityInput);
+    }
 }
 
 export function removeBudgetItem(button) {
-    button.closest(".budget-item-form").remove();
-    calculateBudgetTotal();
+    const itemForm = button.closest(".budget-item-form");
+    if (itemForm) {
+        itemForm.remove();
+        calculateBudgetTotal();
+    }
 }
 
 export function handleLogoPreview(logoInput) {
     const logoPreview = document.getElementById('logo-preview');
+    if (!logoPreview) return;
+
     const file = logoInput.files[0];
     if (file) {
         const reader = new FileReader();
@@ -235,57 +318,113 @@ export function handleLogoPreview(logoInput) {
 
 // --- Funções de Leitura de Formulários (Getters de UI) ---
 export function getProfileFormData() {
-    return {
-        name: document.getElementById("company-name").value.trim(),
-        cnpj: document.getElementById("company-cnpj").value.trim(),
-        address: document.getElementById("company-address").value.trim(),
-        phone: document.getElementById("company-phone").value.trim(),
-        email: document.getElementById("company-email").value.trim(),
-        logo: document.getElementById("logo-preview").src,
-    };
+    const fields = ["company-name", "company-cnpj", "company-address", "company-phone", "company-email"];
+    const data = {};
+
+    fields.forEach(fieldId => {
+        const element = document.getElementById(fieldId);
+        data[fieldId.replace("company-", "")] = element ? element.value.trim() : "";
+    });
+
+    const logoPreview = document.getElementById("logo-preview");
+    data.logo = logoPreview ? logoPreview.src : "";
+
+    return data;
 }
+
 export function getClientFormData(currentClientId) {
-    const name = document.getElementById("client-name").value.trim();
+    const nameElement = document.getElementById("client-name");
+    if (!nameElement) {
+        alert("Elemento de nome do cliente não encontrado.");
+        return null;
+    }
+
+    const name = nameElement.value.trim();
     if (!name) {
         alert("O campo 'Nome' é obrigatório.");
         return null;
     }
-    return {
+
+    const fields = {
+        email: document.getElementById("client-email"),
+        phone: document.getElementById("client-phone"),
+        address: document.getElementById("client-address"),
+        documento: document.getElementById("client-document")
+    };
+
+    const data = {
         id: currentClientId || Date.now().toString(),
-        name,
-        email: document.getElementById("client-email").value.trim(),
-        phone: document.getElementById("client-phone").value.trim(),
-        address: document.getElementById("client-address").value.trim(),
-        documento: document.getElementById("client-document").value.replace(/\D/g, ''),
+        name: name,
         createdAt: new Date().toISOString()
     };
+
+    Object.entries(fields).forEach(([key, element]) => {
+        if (element) {
+            data[key] = key === 'documento' ? element.value.replace(/\D/g, '') : element.value.trim();
+        } else {
+            data[key] = "";
+        }
+    });
+
+    return data;
 }
+
 export function getBudgetFormData(currentBudgetId, items) {
-     return {
+    const fields = {
+        clientId: document.getElementById("budget-client"),
+        delivery: document.getElementById("budget-delivery"),
+        payment: document.getElementById("budget-payment"),
+        notes: document.getElementById("budget-notes")
+    };
+
+    const data = {
         id: currentBudgetId || Date.now().toString(),
-        clientId: document.getElementById("budget-client").value,
-        delivery: document.getElementById("budget-delivery").value.trim(),
-        payment: document.getElementById("budget-payment").value.trim(),
-        notes: document.getElementById("budget-notes").value.trim(),
         items: items,
         createdAt: new Date().toISOString()
     };
+
+    Object.entries(fields).forEach(([key, element]) => {
+        if (element) {
+            data[key] = element.value.trim();
+        } else {
+            data[key] = "";
+        }
+    });
+
+    return data;
 }
+
 export function collectBudgetItems() {
     const forms = document.querySelectorAll(".budget-item-form");
     const items = [];
+    let hasIncompleteItem = false;
+
     forms.forEach(form => {
-        const description = form.querySelector(".item-description")?.value.trim();
-        const quantity = parseFloat(form.querySelector(".item-quantity")?.value) || 0;
-        const price = parseFloat(form.querySelector(".item-price")?.value) || 0;
-        if (description && quantity > 0) {
+        const descriptionEl = form.querySelector(".item-description");
+        const quantityEl = form.querySelector(".item-quantity");
+        const priceEl = form.querySelector(".item-price");
+
+        if (!descriptionEl || !quantityEl || !priceEl) {
+            console.error("Elementos do item não encontrados");
+            return;
+        }
+
+        const description = descriptionEl.value.trim();
+        const quantity = parseFloat(quantityEl.value) || 0;
+        const price = parseFloat(priceEl.value) || 0;
+
+        if (description && quantity > 0 && price >= 0) {
             items.push({ description, quantity, price });
+        } else if (description && (quantity <= 0 || isNaN(price))) {
+            hasIncompleteItem = true;
         }
     });
-    if (items.length === 0 && document.querySelector(".item-description")?.value.trim()) {
-        alert("Preencha a quantidade e o preço do item antes de salvar.");
+
+    if (hasIncompleteItem) {
+        alert("Preencha a quantidade e o preço de todos os itens antes de salvar.");
         return null;
     }
+
     return items;
 }
 
@@ -293,21 +432,38 @@ export function collectBudgetItems() {
 export function calculateItemTotal(input) {
     const itemForm = input.closest(".budget-item-form");
     if (!itemForm) return;
-    const quantity = parseFloat(itemForm.querySelector(".item-quantity")?.value) || 0;
-    const price = parseFloat(itemForm.querySelector(".item-price")?.value) || 0;
+
+    const quantityEl = itemForm.querySelector(".item-quantity");
+    const priceEl = itemForm.querySelector(".item-price");
+    const totalEl = itemForm.querySelector(".item-total");
+
+    if (!quantityEl || !priceEl || !totalEl) return;
+
+    const quantity = parseFloat(quantityEl.value) || 0;
+    const price = parseFloat(priceEl.value) || 0;
     const total = quantity * price;
-    const totalInput = itemForm.querySelector(".item-total");
-    if(totalInput) totalInput.value = `R$ ${total.toFixed(2).replace(".", ",")}`;
+
+    totalEl.value = `R$ ${total.toFixed(2).replace(".", ",")}`;
     calculateBudgetTotal();
 }
+
 export function calculateBudgetTotal() {
     const forms = document.querySelectorAll(".budget-item-form");
     let total = 0;
+
     forms.forEach(form => {
-        const q = parseFloat(form.querySelector(".item-quantity")?.value) || 0;
-        const p = parseFloat(form.querySelector(".item-price")?.value) || 0;
-        total += q * p;
+        const quantityEl = form.querySelector(".item-quantity");
+        const priceEl = form.querySelector(".item-price");
+
+        if (quantityEl && priceEl) {
+            const q = parseFloat(quantityEl.value) || 0;
+            const p = parseFloat(priceEl.value) || 0;
+            total += q * p;
+        }
     });
+
     const budgetTotalInput = document.getElementById("budget-total");
-    if(budgetTotalInput) budgetTotalInput.value = `R$ ${total.toFixed(2).replace(".", ",")}`;
+    if (budgetTotalInput) {
+        budgetTotalInput.value = `R$ ${total.toFixed(2).replace(".", ",")}`;
+    }
 }
