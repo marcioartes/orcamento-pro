@@ -532,7 +532,7 @@ function addBudgetItem() {
     </div>
     <div class="form-group">
       <label>Preço Unitário</label>
-      <input type="number" class="item-price" step="0.01" placeholder="0.00">
+      <input type="number" class="item-price" step="0.00" placeholder="0.00">
     </div>
     <div class="form-group">
       <label>Total do Item</label>
@@ -585,10 +585,14 @@ function calculateBudgetTotal() {
     const quantityInput = form.querySelector(".item-quantity");
     const priceInput = form.querySelector(".item-price");
 
-    const quantity = quantityInput ? parseFloat(quantityInput.value) || 0 : 0;
-    const price = priceInput ? parseFloat(priceInput.value) || 0 : 0;
-
-    total += quantity * price;
+    // --- AQUI ESTÁ A CORREÇÃO ---
+    // Verificamos se ambos os campos existem ANTES de tentar usá-los.
+    if (quantityInput && priceInput) {
+      const quantity = parseFloat(quantityInput.value) || 0;
+      const price = parseFloat(priceInput.value) || 0;
+      total += quantity * price;
+    }
+    // Se não existirem, o código simplesmente ignora este 'form' e continua.
   });
 
   const budgetTotalInput = document.getElementById("budget-total");
