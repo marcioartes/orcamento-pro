@@ -352,16 +352,20 @@ export function calculateItemTotal(input) {
   calculateBudgetTotal();
 }
 
-export function calculateBudgetTotal() {
+function calculateBudgetTotal() {
   const forms = document.querySelectorAll(".budget-item-form");
   let total = 0;
+
   forms.forEach(form => {
-    const q = parseFloat(form.querySelector(".item-quantity")?.value) || 0;
-    const p = parseFloat(form.querySelector(".item-price")?.value) || 0;
+    const quantityElement = form.querySelector(".item-quantity");
+    const priceElement = form.querySelector(".item-price");
+
+    // Verifica se os elementos existem antes de acessar .value
+    const q = quantityElement ? parseFloat(quantityElement.value) || 0 : 0;
+    const p = priceElement ? parseFloat(priceElement.value) || 0 : 0;
+
     total += q * p;
   });
-  const budgetTotalInput = document.getElementById("budget-total");
-  if (budgetTotalInput) {
-    budgetTotalInput.value = `R$ ${total.toFixed(2).replace(".", ",")}`;
-  }
+
+  document.getElementById("budget-total").value = `R$ ${total.toFixed(2).replace(".", ",")}`;
 }
